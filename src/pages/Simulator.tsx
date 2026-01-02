@@ -18,6 +18,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import RiskGauge from "@/components/RiskGauge";
 import IssueItem from "@/components/IssueItem";
+import DnsVerification from "@/components/DnsVerification";
 import {
   ArrowRight,
   Send,
@@ -32,6 +33,14 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+
+interface DnsResult {
+  overallScore: number;
+  overallStatus: "pass" | "warning" | "fail";
+  spf: { found: boolean; valid: boolean };
+  dkim: { found: boolean; valid: boolean };
+  dmarc: { found: boolean; valid: boolean };
+}
 
 interface SimulationResult {
   riskScore: number;
@@ -57,6 +66,7 @@ const Simulator = () => {
   const [domainAge, setDomainAge] = useState("new");
   const [isSimulating, setIsSimulating] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [dnsResult, setDnsResult] = useState<DnsResult | null>(null);
 
   const simulateRisk = () => {
     if (!emailContent.trim()) {
@@ -150,13 +160,19 @@ const Simulator = () => {
         });
       }
 
+      // Calculate authentication risk based on DNS verification
+      let authRisk = 50; // Default if not verified
+      if (dnsResult) {
+        authRisk = 100 - dnsResult.overallScore;
+      }
+
       setResult({
         riskScore,
         inboxProbability: 100 - riskScore,
         issues,
         breakdown: {
           reputation: domainAge === "new" ? 70 : domainAge === "month" ? 40 : 15,
-          authentication: 10,
+          authentication: authRisk,
           engagement: 25,
           content: emailContent.toLowerCase().includes("free") ? 35 : 15,
           volume: volume[0] > 5000 ? 60 : volume[0] > 2000 ? 30 : 10,
@@ -168,12 +184,17 @@ const Simulator = () => {
     }, 2000);
   };
 
+  const handleDnsVerification = (result: DnsResult) => {
+    setDnsResult(result);
+  };
+
   const resetSimulation = () => {
     setResult(null);
     setEmailContent("");
     setDomain("");
     setVolume([1000]);
     setDomainAge("new");
+    setDnsResult(null);
   };
 
   return (
@@ -285,6 +306,13 @@ const Simulator = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* DNS Verification Section */}
+              <DnsVerification 
+                domain={domain}
+                onDomainChange={setDomain}
+                onVerificationComplete={handleDnsVerification}
+              />
 
               <Button
                 variant="hero"
