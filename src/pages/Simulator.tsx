@@ -38,7 +38,7 @@ const Simulator = () => {
   const [subject, setSubject] = useState("");
   const [emailContent, setEmailContent] = useState("");
 
-  const handleSaveToMonitoring = async () => {
+  const handleSaveToMonitoring = async (alertEmail: string) => {
     if (!user) {
       toast.error("Please sign in to add domains to monitoring");
       navigate("/auth");
@@ -53,15 +53,16 @@ const Simulator = () => {
         smtp_host: smtpHost || null,
         smtp_port: smtpPort,
         dkim_selector: dkimSelector,
+        alert_email: alertEmail || null,
       });
 
       if (error) throw error;
 
       toast.success("Domain added to monitoring!");
-      navigate("/dashboard");
     } catch (error) {
       console.error("Error saving domain:", error);
       toast.error("Failed to save domain");
+      throw error;
     }
   };
 
