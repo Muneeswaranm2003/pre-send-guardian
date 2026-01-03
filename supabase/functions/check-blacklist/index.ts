@@ -34,7 +34,24 @@ function reverseIP(ip: string): string {
   return ip.split(".").reverse().join(".");
 }
 
-async function checkDNSBL(query: string): Promise<boolean> {
+// Spamhaus DBL return codes - only specific codes indicate actual listings
+// 127.0.1.2 = spam domain, 127.0.1.4 = phish domain, 127.0.1.5 = malware domain
+// 127.0.1.6 = botnet C&C, 127.0.1.102 = abused legit spam, 127.0.1.103 = abused legit spammed redirector
+// 127.0.1.104 = abused legit phish, 127.0.1.105 = abused legit malware, 127.0.1.106 = abused legit botnet C&C
+// 127.0.1.255 = IP queries prohibited (test/error response - NOT a listing)
+// 127.255.255.252 = typing error in query
+// 127.255.255.254 = anonymous query through public resolver
+// 127.255.255.255 = excessive queries
+const SPAMHAUS_DBL_LISTED_CODES = [
+  "127.0.1.2", "127.0.1.4", "127.0.1.5", "127.0.1.6",
+  "127.0.1.102", "127.0.1.103", "127.0.1.104", "127.0.1.105", "127.0.1.106"
+];
+
+const SPAMHAUS_DBL_ERROR_CODES = [
+  "127.0.1.255", "127.255.255.252", "127.255.255.254", "127.255.255.255"
+];
+
+async function checkDNSBL(query: string, provider: string): Promise<{ isListed: boolean; returnCode?: string }> {
   try {
     const response = await fetch(
       `https://cloudflare-dns.com/dns-query?name=${query}&type=A`,
@@ -45,13 +62,34 @@ async function checkDNSBL(query: string): Promise<boolean> {
       }
     );
 
-    if (!response.ok) return false;
+    if (!response.ok) return { isListed: false };
 
     const data = await response.json();
-    return data.Answer && data.Answer.length > 0;
+    
+    if (!data.Answer || data.Answer.length === 0) {
+      return { isListed: false };
+    }
+
+    // Get the return code (IP address returned)
+    const returnCode = data.Answer[0]?.data;
+    
+    // For Spamhaus DBL, check specific return codes
+    if (provider === "Spamhaus DBL") {
+      // If it's an error code, domain is NOT listed
+      if (SPAMHAUS_DBL_ERROR_CODES.includes(returnCode)) {
+        console.log(`Spamhaus DBL returned error code ${returnCode} - NOT a listing`);
+        return { isListed: false, returnCode };
+      }
+      // Only count as listed if return code is in the listed codes
+      const isListed = SPAMHAUS_DBL_LISTED_CODES.includes(returnCode);
+      return { isListed, returnCode };
+    }
+
+    // For other providers, any answer means listed
+    return { isListed: true, returnCode };
   } catch (error) {
     console.error(`Error checking ${query}:`, error);
-    return false;
+    return { isListed: false };
   }
 }
 
@@ -217,17 +255,18 @@ serve(async (req) => {
       
       for (const provider of BLACKLIST_PROVIDERS.filter((p) => p.type === "ip")) {
         const query = `${reversedIP}.${provider.zone}`;
-        const isListed = await checkDNSBL(query);
+        const result = await checkDNSBL(query, provider.name);
         
         results.push({
           provider: provider.name,
           checkType: "ip",
-          isListed,
+          isListed: result.isListed,
           query,
           weight: provider.weight,
+          returnCode: result.returnCode,
         });
         
-        console.log(`${provider.name}: ${isListed ? "LISTED" : "Clean"}`);
+        console.log(`${provider.name}: ${result.isListed ? "LISTED" : "Clean"}${result.returnCode ? ` (${result.returnCode})` : ""}`);
       }
     }
 
@@ -237,17 +276,18 @@ serve(async (req) => {
       
       for (const provider of BLACKLIST_PROVIDERS.filter((p) => p.type === "domain")) {
         const query = `${cleanDomain}.${provider.zone}`;
-        const isListed = await checkDNSBL(query);
+        const result = await checkDNSBL(query, provider.name);
         
         results.push({
           provider: provider.name,
           checkType: "domain",
-          isListed,
+          isListed: result.isListed,
           query,
           weight: provider.weight,
+          returnCode: result.returnCode,
         });
         
-        console.log(`${provider.name}: ${isListed ? "LISTED" : "Clean"}`);
+        console.log(`${provider.name}: ${result.isListed ? "LISTED" : "Clean"}${result.returnCode ? ` (${result.returnCode})` : ""}`);
       }
     }
 
