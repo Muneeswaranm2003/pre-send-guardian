@@ -2,3 +2,6 @@ project_id = "zzgzjkhwudtbyuvmntkm"
 
 [functions.verify-dns]
 verify_jwt = false
+
+[functions.check-blacklist]
+verify_jwt = false

@@ -14,16 +14,261 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      blacklist_checks: {
+        Row: {
+          check_type: string
+          checked_at: string
+          details: string | null
+          domain_id: string
+          id: string
+          is_listed: boolean | null
+          provider: string
+        }
+        Insert: {
+          check_type: string
+          checked_at?: string
+          details?: string | null
+          domain_id: string
+          id?: string
+          is_listed?: boolean | null
+          provider: string
+        }
+        Update: {
+          check_type?: string
+          checked_at?: string
+          details?: string | null
+          domain_id?: string
+          id?: string
+          is_listed?: boolean | null
+          provider?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blacklist_checks_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monitored_domains: {
+        Row: {
+          blacklist_status: string | null
+          created_at: string
+          dkim_selector: string | null
+          dkim_status: string | null
+          dmarc_status: string | null
+          domain: string
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          last_check_at: string | null
+          overall_health: number | null
+          smtp_host: string | null
+          smtp_port: number | null
+          spf_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blacklist_status?: string | null
+          created_at?: string
+          dkim_selector?: string | null
+          dkim_status?: string | null
+          dmarc_status?: string | null
+          domain: string
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          last_check_at?: string | null
+          overall_health?: number | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          spf_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blacklist_status?: string | null
+          created_at?: string
+          dkim_selector?: string | null
+          dkim_status?: string | null
+          dmarc_status?: string | null
+          domain?: string
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          last_check_at?: string | null
+          overall_health?: number | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          spf_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      monitoring_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          domain_id: string
+          id: string
+          is_email_sent: boolean | null
+          is_read: boolean | null
+          message: string
+          severity: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          domain_id: string
+          id?: string
+          is_email_sent?: boolean | null
+          is_read?: boolean | null
+          message: string
+          severity?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          domain_id?: string
+          id?: string
+          is_email_sent?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          severity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_alerts_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      simulations: {
+        Row: {
+          created_at: string
+          domain: string
+          domain_id: string | null
+          email_content: string | null
+          email_subject: string | null
+          id: string
+          ip_address: string | null
+          issues: Json | null
+          risk_breakdown: Json | null
+          risk_score: number
+          send_volume: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          domain_id?: string | null
+          email_content?: string | null
+          email_subject?: string | null
+          id?: string
+          ip_address?: string | null
+          issues?: Json | null
+          risk_breakdown?: Json | null
+          risk_score: number
+          send_volume?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          domain_id?: string | null
+          email_content?: string | null
+          email_subject?: string | null
+          id?: string
+          ip_address?: string | null
+          issues?: Json | null
+          risk_breakdown?: Json | null
+          risk_score?: number
+          send_volume?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulations_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +395,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
