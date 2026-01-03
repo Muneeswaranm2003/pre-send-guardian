@@ -24,11 +24,25 @@ import { toast } from "sonner";
 import RiskGauge from "@/components/RiskGauge";
 import IssueItem from "@/components/IssueItem";
 
+interface DkimSelectorResult {
+  selector: string;
+  found: boolean;
+  valid: boolean;
+  record: string | null;
+  issues: string[];
+}
+
 interface DnsResult {
   overallScore: number;
   overallStatus: "pass" | "warning" | "fail";
   spf: { found: boolean; valid: boolean };
-  dkim: { found: boolean; valid: boolean };
+  dkim: { 
+    found: boolean; 
+    valid: boolean;
+    selectors?: DkimSelectorResult[];
+    validSelectorsCount?: number;
+    totalSelectorsChecked?: number;
+  };
   dmarc: { found: boolean; valid: boolean };
 }
 
@@ -349,13 +363,56 @@ const StepVerify = ({
               <CardHeader>
                 <CardTitle className="text-lg">DNS Authentication</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {getStatusBadge(dnsResult.spf?.valid, "SPF")}
                   {getStatusBadge(dnsResult.dkim?.valid, "DKIM")}
                   {getStatusBadge(dnsResult.dmarc?.valid, "DMARC")}
                 </div>
-                <div className="mt-4 flex items-center gap-2">
+
+                {/* DKIM Selector Details */}
+                {dnsResult.dkim?.selectors && dnsResult.dkim.selectors.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-foreground">
+                      DKIM Selectors ({dnsResult.dkim.validSelectorsCount}/{dnsResult.dkim.totalSelectorsChecked} valid)
+                    </h4>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {dnsResult.dkim.selectors.map((sel) => (
+                        <div
+                          key={sel.selector}
+                          className={`p-2 rounded-lg border flex items-center gap-2 ${
+                            sel.valid
+                              ? "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
+                              : sel.found
+                              ? "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5"
+                              : "border-muted bg-muted/30"
+                          }`}
+                        >
+                          {sel.valid ? (
+                            <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                          ) : sel.found ? (
+                            <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-muted-foreground" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-foreground">{sel.selector}</span>
+                            {!sel.found && (
+                              <span className="text-xs text-muted-foreground ml-1">(not found)</span>
+                            )}
+                            {sel.found && !sel.valid && sel.issues.length > 0 && (
+                              <p className="text-xs text-[hsl(var(--warning))] truncate">
+                                {sel.issues[0]}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Overall Score:</span>
                   <span className={`font-bold ${
                     dnsResult.overallStatus === "pass" 
