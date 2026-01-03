@@ -50,6 +50,12 @@ interface BlacklistResult {
   provider: string;
   isListed: boolean;
   checkType: string;
+  returnCode?: string;
+  codeInfo?: {
+    type: string;
+    severity: string;
+    description: string;
+  };
 }
 
 interface ReputationFactor {
@@ -565,22 +571,44 @@ const StepVerify = ({
                 <CardTitle className="text-lg">Blacklist Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
                   {blacklistResults.map((bl, i) => (
                     <div
                       key={i}
-                      className={`p-2 rounded-lg border flex items-center gap-2 ${
+                      className={`p-3 rounded-lg border ${
                         bl.isListed
                           ? "border-destructive/30 bg-destructive/5"
                           : "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
                       }`}
                     >
-                      {bl.isListed ? (
-                        <XCircle className="w-4 h-4 text-destructive" />
-                      ) : (
-                        <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                      <div className="flex items-center gap-2">
+                        {bl.isListed ? (
+                          <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+                        ) : (
+                          <CheckCircle className="w-4 h-4 text-[hsl(var(--success))] flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium text-foreground">{bl.provider}</span>
+                      </div>
+                      {bl.isListed && bl.codeInfo && (
+                        <div className="mt-2 pl-6 space-y-1">
+                          <Badge 
+                            variant="destructive" 
+                            className={`text-xs ${
+                              bl.codeInfo.severity === "critical" 
+                                ? "bg-destructive" 
+                                : bl.codeInfo.severity === "high"
+                                ? "bg-destructive/80"
+                                : "bg-[hsl(var(--warning))]"
+                            }`}
+                          >
+                            {bl.codeInfo.type.toUpperCase()}
+                          </Badge>
+                          <p className="text-xs text-muted-foreground">{bl.codeInfo.description}</p>
+                          {bl.returnCode && (
+                            <p className="text-xs text-muted-foreground/70">Code: {bl.returnCode}</p>
+                          )}
+                        </div>
                       )}
-                      <span className="text-sm text-foreground">{bl.provider}</span>
                     </div>
                   ))}
                 </div>
