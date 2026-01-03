@@ -10,6 +10,14 @@ interface DnsRecord {
   value: string;
 }
 
+interface DkimSelectorResult {
+  selector: string;
+  found: boolean;
+  valid: boolean;
+  record: string | null;
+  issues: string[];
+}
+
 interface DnsVerificationResult {
   spf: {
     found: boolean;
@@ -21,8 +29,9 @@ interface DnsVerificationResult {
   dkim: {
     found: boolean;
     valid: boolean;
-    selector: string;
-    record: string | null;
+    selectors: DkimSelectorResult[];
+    validSelectorsCount: number;
+    totalSelectorsChecked: number;
     issues: string[];
     recommendations: string[];
   };
@@ -128,45 +137,89 @@ function analyzeSPF(records: DnsRecord[]): DnsVerificationResult["spf"] {
   };
 }
 
-function analyzeDKIM(records: DnsRecord[], selector: string): DnsVerificationResult["dkim"] {
+async function analyzeDKIMSelector(
+  domain: string,
+  selector: string
+): Promise<DkimSelectorResult> {
+  const records = await queryDns(`${selector}._domainkey.${domain}`, "TXT");
+  
   if (records.length === 0) {
     return {
+      selector,
       found: false,
       valid: false,
-      selector,
       record: null,
       issues: [`No DKIM record found for selector "${selector}"`],
-      recommendations: [
-        "Configure DKIM signing with your email provider",
-        "Common selectors: google, selector1, selector2, default",
-      ],
     };
   }
 
   const dkimValue = records[0].value;
   const issues: string[] = [];
-  const recommendations: string[] = [];
 
   if (!dkimValue.includes("v=DKIM1")) {
-    issues.push("DKIM record missing version tag");
+    issues.push("Missing version tag (v=DKIM1)");
   }
 
   if (!dkimValue.includes("p=")) {
-    issues.push("DKIM record missing public key");
-    recommendations.push("Ensure your DKIM record includes the public key (p=)");
+    issues.push("Missing public key (p=)");
   }
 
   // Check for empty public key (revoked)
   if (dkimValue.includes("p=;") || dkimValue.match(/p=\s*$/)) {
-    issues.push("DKIM public key is empty (record may be revoked)");
-    recommendations.push("Generate a new DKIM key pair");
+    issues.push("Public key is empty (record may be revoked)");
   }
 
   return {
+    selector,
     found: true,
     valid: issues.length === 0,
-    selector,
     record: dkimValue.substring(0, 100) + (dkimValue.length > 100 ? "..." : ""),
+    issues,
+  };
+}
+
+async function analyzeDKIM(
+  domain: string,
+  selectors: string[]
+): Promise<DnsVerificationResult["dkim"]> {
+  // Check all selectors in parallel
+  const results = await Promise.all(
+    selectors.map((selector) => analyzeDKIMSelector(domain, selector))
+  );
+
+  const validSelectors = results.filter((r) => r.valid);
+  const foundSelectors = results.filter((r) => r.found);
+  
+  const issues: string[] = [];
+  const recommendations: string[] = [];
+
+  if (foundSelectors.length === 0) {
+    issues.push("No DKIM records found for any of the specified selectors");
+    recommendations.push(
+      "Configure DKIM signing with your email provider",
+      "Verify you're using the correct DKIM selectors for your email services"
+    );
+  } else if (validSelectors.length === 0) {
+    issues.push("DKIM records found but none are valid");
+    recommendations.push("Check and fix the issues with your DKIM records");
+  } else if (validSelectors.length < foundSelectors.length) {
+    issues.push(`${foundSelectors.length - validSelectors.length} DKIM selector(s) have issues`);
+    recommendations.push("Review and fix invalid DKIM records");
+  }
+
+  // Add per-selector issues
+  results.forEach((r) => {
+    if (r.found && !r.valid && r.issues.length > 0) {
+      issues.push(`${r.selector}: ${r.issues.join(", ")}`);
+    }
+  });
+
+  return {
+    found: foundSelectors.length > 0,
+    valid: validSelectors.length > 0,
+    selectors: results,
+    validSelectorsCount: validSelectors.length,
+    totalSelectorsChecked: selectors.length,
     issues,
     recommendations,
   };
@@ -245,23 +298,28 @@ serve(async (req) => {
     // Clean domain
     const cleanDomain = domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "").toLowerCase();
     
+    // Parse DKIM selectors (can be comma-separated)
+    const selectors = dkimSelector
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+    
     console.log(`Checking DNS records for: ${cleanDomain}`);
-    console.log(`DKIM selector: ${dkimSelector}`);
+    console.log(`DKIM selectors to check: ${selectors.join(", ")}`);
 
-    // Query DNS records in parallel
-    const [spfRecords, dkimRecords, dmarcRecords] = await Promise.all([
+    // Query SPF and DMARC in parallel, DKIM is handled separately
+    const [spfRecords, dmarcRecords, dkim] = await Promise.all([
       queryDns(cleanDomain, "TXT"),
-      queryDns(`${dkimSelector}._domainkey.${cleanDomain}`, "TXT"),
       queryDns(`_dmarc.${cleanDomain}`, "TXT"),
+      analyzeDKIM(cleanDomain, selectors),
     ]);
 
     console.log(`SPF records found: ${spfRecords.length}`);
-    console.log(`DKIM records found: ${dkimRecords.length}`);
+    console.log(`DKIM valid selectors: ${dkim.validSelectorsCount}/${dkim.totalSelectorsChecked}`);
     console.log(`DMARC records found: ${dmarcRecords.length}`);
 
     // Analyze each record type
     const spf = analyzeSPF(spfRecords);
-    const dkim = analyzeDKIM(dkimRecords, dkimSelector);
     const dmarc = analyzeDMARC(dmarcRecords);
 
     // Calculate overall score
@@ -273,10 +331,10 @@ serve(async (req) => {
     if (spf.found) score += 15;
     if (spf.valid) score += 15;
 
-    // DKIM scoring (35 points)
+    // DKIM scoring (35 points) - based on having at least one valid selector
     maxScore += 35;
-    if (dkim.found) score += 20;
-    if (dkim.valid) score += 15;
+    if (dkim.found) score += 15;
+    if (dkim.valid) score += 20;
 
     // DMARC scoring (35 points)
     maxScore += 35;
