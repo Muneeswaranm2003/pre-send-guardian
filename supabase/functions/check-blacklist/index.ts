@@ -34,24 +34,29 @@ function reverseIP(ip: string): string {
   return ip.split(".").reverse().join(".");
 }
 
-// Spamhaus DBL return codes - only specific codes indicate actual listings
-// 127.0.1.2 = spam domain, 127.0.1.4 = phish domain, 127.0.1.5 = malware domain
-// 127.0.1.6 = botnet C&C, 127.0.1.102 = abused legit spam, 127.0.1.103 = abused legit spammed redirector
-// 127.0.1.104 = abused legit phish, 127.0.1.105 = abused legit malware, 127.0.1.106 = abused legit botnet C&C
-// 127.0.1.255 = IP queries prohibited (test/error response - NOT a listing)
-// 127.255.255.252 = typing error in query
-// 127.255.255.254 = anonymous query through public resolver
-// 127.255.255.255 = excessive queries
-const SPAMHAUS_DBL_LISTED_CODES = [
-  "127.0.1.2", "127.0.1.4", "127.0.1.5", "127.0.1.6",
-  "127.0.1.102", "127.0.1.103", "127.0.1.104", "127.0.1.105", "127.0.1.106"
-];
+// Spamhaus DBL return codes with their meanings
+const SPAMHAUS_DBL_CODES: Record<string, { listed: boolean; type: string; severity: string; description: string }> = {
+  "127.0.1.2": { listed: true, type: "spam", severity: "high", description: "Spam Domain - Used for sending spam emails" },
+  "127.0.1.4": { listed: true, type: "phish", severity: "critical", description: "Phishing Domain - Used for phishing attacks" },
+  "127.0.1.5": { listed: true, type: "malware", severity: "critical", description: "Malware Domain - Hosts or distributes malware" },
+  "127.0.1.6": { listed: true, type: "botnet", severity: "critical", description: "Botnet C&C Domain - Command & control for botnets" },
+  "127.0.1.102": { listed: true, type: "abused-spam", severity: "medium", description: "Abused Legitimate Domain - Compromised and used for spam" },
+  "127.0.1.103": { listed: true, type: "abused-redirector", severity: "medium", description: "Abused Redirector - Legitimate domain used as spam redirector" },
+  "127.0.1.104": { listed: true, type: "abused-phish", severity: "high", description: "Abused for Phishing - Legitimate domain compromised for phishing" },
+  "127.0.1.105": { listed: true, type: "abused-malware", severity: "high", description: "Abused for Malware - Legitimate domain compromised for malware" },
+  "127.0.1.106": { listed: true, type: "abused-botnet", severity: "high", description: "Abused for Botnet - Legitimate domain used as botnet C&C" },
+  // Error/test codes - NOT listings
+  "127.0.1.255": { listed: false, type: "error", severity: "none", description: "Query through public resolver - not a listing" },
+  "127.255.255.252": { listed: false, type: "error", severity: "none", description: "Typing error in query" },
+  "127.255.255.254": { listed: false, type: "error", severity: "none", description: "Anonymous query through public resolver" },
+  "127.255.255.255": { listed: false, type: "error", severity: "none", description: "Excessive number of queries" },
+};
 
-const SPAMHAUS_DBL_ERROR_CODES = [
-  "127.0.1.255", "127.255.255.252", "127.255.255.254", "127.255.255.255"
-];
+function getSpamhausCodeInfo(returnCode: string): { listed: boolean; type: string; severity: string; description: string } {
+  return SPAMHAUS_DBL_CODES[returnCode] || { listed: false, type: "unknown", severity: "none", description: "Unknown return code" };
+}
 
-async function checkDNSBL(query: string, provider: string): Promise<{ isListed: boolean; returnCode?: string }> {
+async function checkDNSBL(query: string, provider: string): Promise<{ isListed: boolean; returnCode?: string; codeInfo?: { type: string; severity: string; description: string } }> {
   try {
     const response = await fetch(
       `https://cloudflare-dns.com/dns-query?name=${query}&type=A`,
@@ -75,14 +80,16 @@ async function checkDNSBL(query: string, provider: string): Promise<{ isListed: 
     
     // For Spamhaus DBL, check specific return codes
     if (provider === "Spamhaus DBL") {
-      // If it's an error code, domain is NOT listed
-      if (SPAMHAUS_DBL_ERROR_CODES.includes(returnCode)) {
-        console.log(`Spamhaus DBL returned error code ${returnCode} - NOT a listing`);
+      const codeInfo = getSpamhausCodeInfo(returnCode);
+      if (!codeInfo.listed) {
+        console.log(`Spamhaus DBL returned code ${returnCode} - NOT a listing: ${codeInfo.description}`);
         return { isListed: false, returnCode };
       }
-      // Only count as listed if return code is in the listed codes
-      const isListed = SPAMHAUS_DBL_LISTED_CODES.includes(returnCode);
-      return { isListed, returnCode };
+      return { 
+        isListed: true, 
+        returnCode, 
+        codeInfo: { type: codeInfo.type, severity: codeInfo.severity, description: codeInfo.description }
+      };
     }
 
     // For other providers, any answer means listed
@@ -285,9 +292,10 @@ serve(async (req) => {
           query,
           weight: provider.weight,
           returnCode: result.returnCode,
+          codeInfo: result.codeInfo,
         });
         
-        console.log(`${provider.name}: ${result.isListed ? "LISTED" : "Clean"}${result.returnCode ? ` (${result.returnCode})` : ""}`);
+        console.log(`${provider.name}: ${result.isListed ? "LISTED" : "Clean"}${result.returnCode ? ` (${result.returnCode})` : ""}${result.codeInfo ? ` - ${result.codeInfo.type}` : ""}`);
       }
     }
 
