@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Shield, 
   ArrowLeft, 
@@ -12,7 +15,9 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Activity,
+  Bell
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -63,7 +68,7 @@ interface StepVerifyProps {
   subject: string;
   emailContent: string;
   onBack: () => void;
-  onSaveToMonitoring?: () => void;
+  onSaveToMonitoring?: (alertEmail: string) => Promise<void>;
 }
 
 const StepVerify = ({
@@ -79,10 +84,14 @@ const StepVerify = ({
   onBack,
   onSaveToMonitoring,
 }: StepVerifyProps) => {
+  const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [dnsResult, setDnsResult] = useState<DnsResult | null>(null);
   const [blacklistResults, setBlacklistResults] = useState<BlacklistResult[]>([]);
+  const [alertEmail, setAlertEmail] = useState("");
+  const [savedToMonitoring, setSavedToMonitoring] = useState(false);
 
   const runFullVerification = async () => {
     setIsVerifying(true);
@@ -226,6 +235,17 @@ const StepVerify = ({
         {label}
       </Badge>
     );
+  };
+
+  const handleSaveAndMonitor = async () => {
+    if (!onSaveToMonitoring) return;
+    setIsSaving(true);
+    try {
+      await onSaveToMonitoring(alertEmail);
+      setSavedToMonitoring(true);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -431,11 +451,78 @@ const StepVerify = ({
           </Card>
 
           {/* Save to Monitoring */}
-          {onSaveToMonitoring && (
-            <Button onClick={onSaveToMonitoring} className="w-full" variant="outline">
-              <Shield className="w-4 h-4 mr-2" />
-              Add to Live Monitoring
-            </Button>
+          {onSaveToMonitoring && !savedToMonitoring && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Bell className="w-5 h-5 text-primary" />
+                  Enable Live Monitoring
+                </CardTitle>
+                <CardDescription>
+                  Get notified when your domain health changes or gets blacklisted
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="alertEmail">Alert Email Address</Label>
+                  <Input
+                    id="alertEmail"
+                    type="email"
+                    placeholder="alerts@yourdomain.com"
+                    value={alertEmail}
+                    onChange={(e) => setAlertEmail(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    We'll send you alerts when issues are detected with your domain or IP
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleSaveAndMonitor} 
+                  className="w-full" 
+                  variant="hero"
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Add to Live Monitoring
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Success - Go to Dashboard */}
+          {savedToMonitoring && (
+            <Card className="border-2 border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-[hsl(var(--success))]/20 flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-[hsl(var(--success))]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">Domain Added to Monitoring</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {alertEmail ? `Alerts will be sent to ${alertEmail}` : "You can set up email alerts in the dashboard"}
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => navigate("/dashboard")} 
+                    className="w-full" 
+                    variant="hero"
+                  >
+                    <Activity className="w-4 h-4 mr-2" />
+                    Go to Live Monitoring Dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </>
       )}

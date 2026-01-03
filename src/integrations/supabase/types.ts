@@ -54,6 +54,7 @@ export type Database = {
       }
       monitored_domains: {
         Row: {
+          alert_email: string | null
           blacklist_status: string | null
           created_at: string
           dkim_selector: string | null
@@ -72,6 +73,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          alert_email?: string | null
           blacklist_status?: string | null
           created_at?: string
           dkim_selector?: string | null
@@ -90,6 +92,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          alert_email?: string | null
           blacklist_status?: string | null
           created_at?: string
           dkim_selector?: string | null
