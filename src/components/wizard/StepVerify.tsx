@@ -52,6 +52,25 @@ interface BlacklistResult {
   checkType: string;
 }
 
+interface ReputationFactor {
+  name: string;
+  status: "clean" | "listed";
+  impact: number;
+  description: string;
+}
+
+interface DomainReputation {
+  score: number;
+  grade: string;
+  factors: ReputationFactor[];
+  example: {
+    provider: string;
+    description: string;
+    howToCheck: string;
+    delistingUrl: string;
+  };
+}
+
 interface SimulationResult {
   riskScore: number;
   inboxProbability: number;
@@ -69,6 +88,7 @@ interface SimulationResult {
   };
   dnsResult?: DnsResult;
   blacklistResults?: BlacklistResult[];
+  domainReputation?: DomainReputation;
 }
 
 interface StepVerifyProps {
@@ -104,6 +124,7 @@ const StepVerify = ({
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [dnsResult, setDnsResult] = useState<DnsResult | null>(null);
   const [blacklistResults, setBlacklistResults] = useState<BlacklistResult[]>([]);
+  const [domainReputation, setDomainReputation] = useState<DomainReputation | null>(null);
   const [alertEmail, setAlertEmail] = useState("");
   const [savedToMonitoring, setSavedToMonitoring] = useState(false);
 
@@ -121,16 +142,21 @@ const StepVerify = ({
       if (dnsError) throw dnsError;
       setDnsResult(dnsData);
 
-      // Step 2: Check blacklists
+      // Step 2: Check blacklists and domain reputation
       let blacklists: BlacklistResult[] = [];
-      if (ipAddress) {
-        const { data: blacklistData, error: blacklistError } = await supabase.functions.invoke("check-blacklist", {
-          body: { ip: ipAddress, domain },
-        });
+      let reputation: DomainReputation | null = null;
+      
+      const { data: blacklistData, error: blacklistError } = await supabase.functions.invoke("check-blacklist", {
+        body: { ip: ipAddress || undefined, domain },
+      });
 
-        if (!blacklistError && blacklistData) {
-          blacklists = blacklistData.results || [];
-          setBlacklistResults(blacklists);
+      if (!blacklistError && blacklistData) {
+        blacklists = blacklistData.results || [];
+        setBlacklistResults(blacklists);
+        
+        if (blacklistData.reputation) {
+          reputation = blacklistData.reputation;
+          setDomainReputation(reputation);
         }
       }
 
@@ -222,7 +248,7 @@ const StepVerify = ({
         inboxProbability: 100 - riskScore,
         issues,
         breakdown: {
-          reputation: domainAge === "new" ? 70 : domainAge === "month" ? 40 : 15,
+          reputation: reputation ? 100 - reputation.score : (domainAge === "new" ? 70 : domainAge === "month" ? 40 : 15),
           authentication: authRisk,
           engagement: 25,
           content: content.includes("free") ? 35 : 15,
@@ -230,6 +256,7 @@ const StepVerify = ({
         },
         dnsResult: dnsData,
         blacklistResults: blacklists,
+        domainReputation: reputation || undefined,
       });
 
       toast.success("Verification complete!");
@@ -423,6 +450,109 @@ const StepVerify = ({
                   }`}>
                     {dnsResult.overallScore}%
                   </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Domain Reputation Score */}
+          {domainReputation && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Activity className="w-5 h-5 text-primary" />
+                  Domain Reputation Score
+                </CardTitle>
+                <CardDescription>
+                  Based on major blacklist providers including Spamhaus DBL
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Score Display */}
+                <div className="flex items-center gap-4">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold border-4 ${
+                    domainReputation.grade === "A" ? "border-[hsl(var(--success))] text-[hsl(var(--success))] bg-[hsl(var(--success))]/10" :
+                    domainReputation.grade === "B" ? "border-[hsl(var(--success))]/70 text-[hsl(var(--success))] bg-[hsl(var(--success))]/5" :
+                    domainReputation.grade === "C" ? "border-[hsl(var(--warning))] text-[hsl(var(--warning))] bg-[hsl(var(--warning))]/10" :
+                    domainReputation.grade === "D" ? "border-[hsl(var(--warning))]/70 text-[hsl(var(--warning))] bg-[hsl(var(--warning))]/5" :
+                    "border-destructive text-destructive bg-destructive/10"
+                  }`}>
+                    {domainReputation.grade}
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-foreground">{domainReputation.score}/100</div>
+                    <div className="text-sm text-muted-foreground">
+                      {domainReputation.score >= 90 ? "Excellent reputation" :
+                       domainReputation.score >= 80 ? "Good reputation" :
+                       domainReputation.score >= 70 ? "Fair reputation" :
+                       domainReputation.score >= 50 ? "Poor reputation" :
+                       "Critical - needs immediate attention"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reputation Factors */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-foreground">Reputation Factors</h4>
+                  <div className="grid gap-2">
+                    {domainReputation.factors.map((factor, i) => (
+                      <div
+                        key={i}
+                        className={`p-3 rounded-lg border ${
+                          factor.status === "clean"
+                            ? "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
+                            : "border-destructive/30 bg-destructive/5"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {factor.status === "clean" ? (
+                            <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-destructive" />
+                          )}
+                          <span className="font-medium text-foreground">{factor.name}</span>
+                          {factor.impact !== 0 && (
+                            <Badge variant="destructive" className="ml-auto">
+                              {factor.impact} pts
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 ml-6">{factor.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Spamhaus Example */}
+                <div className="p-4 rounded-lg border border-border bg-accent/30">
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-primary mt-0.5" />
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-foreground">
+                        Example: {domainReputation.example.provider}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {domainReputation.example.description}
+                      </p>
+                      <div className="text-xs space-y-1">
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-foreground">DNS Query:</span>{" "}
+                          <code className="bg-muted px-1 py-0.5 rounded">{domainReputation.example.howToCheck}</code>
+                        </p>
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-foreground">Delisting:</span>{" "}
+                          <a 
+                            href={domainReputation.example.delistingUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {domainReputation.example.delistingUrl}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
