@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Server, ArrowRight, ArrowLeft, AlertCircle, Lock } from "lucide-react";
+import { Server, ArrowRight, ArrowLeft, AlertCircle, Lock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface StepIpSmtpProps {
   ipAddress: string;
@@ -38,6 +41,60 @@ const StepIpSmtp = ({
   onBack,
   onNext,
 }: StepIpSmtpProps) => {
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+    details?: string;
+  } | null>(null);
+
+  const canTest = smtpHost && smtpPort && smtpUsername && smtpPassword;
+
+  const testConnection = async () => {
+    if (!canTest) {
+      toast.error("Please fill in all SMTP fields first");
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('test-smtp', {
+        body: {
+          host: smtpHost,
+          port: smtpPort,
+          username: smtpUsername,
+          password: smtpPassword,
+        },
+      });
+
+      if (error) throw error;
+
+      setTestResult({
+        success: data.success,
+        message: data.success ? data.message : data.error,
+        details: data.details,
+      });
+
+      if (data.success) {
+        toast.success("SMTP connection successful!");
+      } else {
+        toast.error(data.error || "Connection failed");
+      }
+    } catch (error) {
+      console.error("SMTP test error:", error);
+      setTestResult({
+        success: false,
+        message: "Failed to test SMTP connection",
+        details: error instanceof Error ? error.message : String(error),
+      });
+      toast.error("Failed to test connection");
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -65,25 +122,27 @@ const StepIpSmtp = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="smtpHost">SMTP Host</Label>
+            <Label htmlFor="smtpHost">SMTP Host *</Label>
             <Input
               id="smtpHost"
               placeholder="e.g., smtp.yourdomain.com"
               value={smtpHost}
               onChange={(e) => setSmtpHost(e.target.value)}
+              required
             />
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="smtpPort">SMTP Port</Label>
+            <Label htmlFor="smtpPort">SMTP Port *</Label>
             <Input
               id="smtpPort"
               type="number"
               placeholder="587"
               value={smtpPort}
               onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
+              required
             />
             <p className="text-xs text-muted-foreground">
               Common: 25, 587, 465
@@ -118,6 +177,59 @@ const StepIpSmtp = ({
           <p className="text-xs text-muted-foreground">
             Your credentials are used only for connectivity testing and are never stored
           </p>
+        </div>
+
+        {/* Test Connection Button */}
+        <div className="space-y-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={testConnection}
+            disabled={!canTest || isTesting}
+            className="w-full"
+          >
+            {isTesting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Testing Connection...
+              </>
+            ) : (
+              <>
+                <Server className="w-4 h-4 mr-2" />
+                Test SMTP Connection
+              </>
+            )}
+          </Button>
+
+          {testResult && (
+            <div
+              className={`p-3 rounded-lg flex items-start gap-2 ${
+                testResult.success
+                  ? "bg-primary/10 border border-primary/30"
+                  : "bg-destructive/10 border border-destructive/30"
+              }`}
+            >
+              {testResult.success ? (
+                <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
+              ) : (
+                <XCircle className="w-4 h-4 text-destructive mt-0.5" />
+              )}
+              <div className="flex-1">
+                <p
+                  className={`text-sm font-medium ${
+                    testResult.success ? "text-primary" : "text-destructive"
+                  }`}
+                >
+                  {testResult.message}
+                </p>
+                {testResult.details && typeof testResult.details === "string" && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {testResult.details}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
