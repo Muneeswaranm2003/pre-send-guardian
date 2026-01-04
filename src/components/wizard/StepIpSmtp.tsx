@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Server, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
+import { Server, ArrowRight, ArrowLeft, AlertCircle, Lock } from "lucide-react";
 
 interface StepIpSmtpProps {
   ipAddress: string;
@@ -12,6 +12,10 @@ interface StepIpSmtpProps {
   setSmtpHost: (value: string) => void;
   smtpPort: number;
   setSmtpPort: (value: number) => void;
+  smtpUsername: string;
+  setSmtpUsername: (value: string) => void;
+  smtpPassword: string;
+  setSmtpPassword: (value: string) => void;
   volume: number[];
   setVolume: (value: number[]) => void;
   onBack: () => void;
@@ -25,6 +29,10 @@ const StepIpSmtp = ({
   setSmtpHost,
   smtpPort,
   setSmtpPort,
+  smtpUsername,
+  setSmtpUsername,
+  smtpPassword,
+  setSmtpPassword,
   volume,
   setVolume,
   onBack,
@@ -67,17 +75,48 @@ const StepIpSmtp = ({
           </div>
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="smtpPort">SMTP Port</Label>
+            <Input
+              id="smtpPort"
+              type="number"
+              placeholder="587"
+              value={smtpPort}
+              onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Common: 25, 587, 465
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="smtpUsername">SMTP Username *</Label>
+            <Input
+              id="smtpUsername"
+              placeholder="e.g., user@yourdomain.com"
+              value={smtpUsername}
+              onChange={(e) => setSmtpUsername(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
         <div className="space-y-2">
-          <Label htmlFor="smtpPort">SMTP Port</Label>
+          <Label htmlFor="smtpPassword" className="flex items-center gap-2">
+            <Lock className="w-3 h-3" />
+            SMTP Password *
+          </Label>
           <Input
-            id="smtpPort"
-            type="number"
-            placeholder="587"
-            value={smtpPort}
-            onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
+            id="smtpPassword"
+            type="password"
+            placeholder="Enter your SMTP password"
+            value={smtpPassword}
+            onChange={(e) => setSmtpPassword(e.target.value)}
+            required
           />
           <p className="text-xs text-muted-foreground">
-            Common ports: 25 (SMTP), 587 (Submission), 465 (SMTPS)
+            Your credentials are used only for connectivity testing and are never stored
           </p>
         </div>
 
