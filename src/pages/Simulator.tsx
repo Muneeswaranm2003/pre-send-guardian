@@ -32,6 +32,8 @@ const Simulator = () => {
   const [ipAddress, setIpAddress] = useState("");
   const [smtpHost, setSmtpHost] = useState("");
   const [smtpPort, setSmtpPort] = useState(587);
+  const [smtpUsername, setSmtpUsername] = useState("");
+  const [smtpPassword, setSmtpPassword] = useState("");
   const [volume, setVolume] = useState([1000]);
 
   // Step 3: Email Content
@@ -74,6 +76,8 @@ const Simulator = () => {
     setIpAddress("");
     setSmtpHost("");
     setSmtpPort(587);
+    setSmtpUsername("");
+    setSmtpPassword("");
     setVolume([1000]);
     setSubject("");
     setEmailContent("");
@@ -119,6 +123,10 @@ const Simulator = () => {
               setSmtpHost={setSmtpHost}
               smtpPort={smtpPort}
               setSmtpPort={setSmtpPort}
+              smtpUsername={smtpUsername}
+              setSmtpUsername={setSmtpUsername}
+              smtpPassword={smtpPassword}
+              setSmtpPassword={setSmtpPassword}
               volume={volume}
               setVolume={setVolume}
               onBack={() => setCurrentStep(1)}
