@@ -29,11 +29,14 @@ const Simulator = () => {
   const [dkimSelector, setDkimSelector] = useState("google");
 
   // Step 2: IP & SMTP
+  const [connectionMethod, setConnectionMethod] = useState<"ip" | "smtp" | "api">("ip");
   const [ipAddress, setIpAddress] = useState("");
   const [smtpHost, setSmtpHost] = useState("");
   const [smtpPort, setSmtpPort] = useState(587);
   const [smtpUsername, setSmtpUsername] = useState("");
   const [smtpPassword, setSmtpPassword] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [apiProvider, setApiProvider] = useState("sendgrid");
   const [volume, setVolume] = useState([1000]);
 
   // Step 3: Email Content
@@ -73,11 +76,14 @@ const Simulator = () => {
     setDomain("");
     setDomainAge("new");
     setDkimSelector("google");
+    setConnectionMethod("ip");
     setIpAddress("");
     setSmtpHost("");
     setSmtpPort(587);
     setSmtpUsername("");
     setSmtpPassword("");
+    setApiKey("");
+    setApiProvider("sendgrid");
     setVolume([1000]);
     setSubject("");
     setEmailContent("");
@@ -117,6 +123,8 @@ const Simulator = () => {
 
           {currentStep === 2 && (
             <StepIpSmtp
+              connectionMethod={connectionMethod}
+              setConnectionMethod={setConnectionMethod}
               ipAddress={ipAddress}
               setIpAddress={setIpAddress}
               smtpHost={smtpHost}
@@ -127,6 +135,10 @@ const Simulator = () => {
               setSmtpUsername={setSmtpUsername}
               smtpPassword={smtpPassword}
               setSmtpPassword={setSmtpPassword}
+              apiKey={apiKey}
+              setApiKey={setApiKey}
+              apiProvider={apiProvider}
+              setApiProvider={setApiProvider}
               volume={volume}
               setVolume={setVolume}
               onBack={() => setCurrentStep(1)}
