@@ -58,7 +58,13 @@ const StepIpSmtp = ({
   onNext,
 }: StepIpSmtpProps) => {
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestingApi, setIsTestingApi] = useState(false);
   const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+    details?: string;
+  } | null>(null);
+  const [apiTestResult, setApiTestResult] = useState<{
     success: boolean;
     message: string;
     details?: string;
@@ -78,10 +84,11 @@ const StepIpSmtp = ({
     }
   };
 
-  const canTest = connectionMethod === "smtp" && smtpHost && smtpPort && smtpUsername && smtpPassword;
+  const canTestSmtp = connectionMethod === "smtp" && smtpHost && smtpPort && smtpUsername && smtpPassword;
+  const canTestApi = connectionMethod === "api" && apiKey.trim() !== "" && apiProvider;
 
-  const testConnection = async () => {
-    if (!canTest) {
+  const testSmtpConnection = async () => {
+    if (!canTestSmtp) {
       toast.error("Please fill in all SMTP fields first");
       return;
     }
@@ -122,6 +129,49 @@ const StepIpSmtp = ({
       toast.error("Failed to test connection");
     } finally {
       setIsTesting(false);
+    }
+  };
+
+  const testApiKey = async () => {
+    if (!canTestApi) {
+      toast.error("Please select a provider and enter an API key");
+      return;
+    }
+
+    setIsTestingApi(true);
+    setApiTestResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('test-api-key', {
+        body: {
+          provider: apiProvider,
+          apiKey: apiKey,
+        },
+      });
+
+      if (error) throw error;
+
+      setApiTestResult({
+        success: data.success,
+        message: data.message,
+        details: data.details,
+      });
+
+      if (data.success) {
+        toast.success("API key validated successfully!");
+      } else {
+        toast.error(data.message || "Validation failed");
+      }
+    } catch (error) {
+      console.error("API key test error:", error);
+      setApiTestResult({
+        success: false,
+        message: "Failed to validate API key",
+        details: error instanceof Error ? error.message : String(error),
+      });
+      toast.error("Failed to validate API key");
+    } finally {
+      setIsTestingApi(false);
     }
   };
 
@@ -302,8 +352,8 @@ const StepIpSmtp = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={testConnection}
-                disabled={!canTest || isTesting}
+                onClick={testSmtpConnection}
+                disabled={!canTestSmtp || isTesting}
                 className="w-full"
               >
                 {isTesting ? (
@@ -389,6 +439,59 @@ const StepIpSmtp = ({
               <p className="text-xs text-muted-foreground">
                 Your API key is used only for verification and is never stored
               </p>
+            </div>
+
+            {/* Test API Key Button */}
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={testApiKey}
+                disabled={!canTestApi || isTestingApi}
+                className="w-full"
+              >
+                {isTestingApi ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Validating API Key...
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-4 h-4 mr-2" />
+                    Validate API Key
+                  </>
+                )}
+              </Button>
+
+              {apiTestResult && (
+                <div
+                  className={`p-3 rounded-lg flex items-start gap-2 ${
+                    apiTestResult.success
+                      ? "bg-primary/10 border border-primary/30"
+                      : "bg-destructive/10 border border-destructive/30"
+                  }`}
+                >
+                  {apiTestResult.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-destructive mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p
+                      className={`text-sm font-medium ${
+                        apiTestResult.success ? "text-primary" : "text-destructive"
+                      }`}
+                    >
+                      {apiTestResult.message}
+                    </p>
+                    {apiTestResult.details && typeof apiTestResult.details === "string" && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {apiTestResult.details}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

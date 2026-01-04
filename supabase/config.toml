@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.test-smtp]
 verify_jwt = false
+
+[functions.test-api-key]
+verify_jwt = false
