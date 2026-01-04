@@ -4,11 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Server, ArrowRight, ArrowLeft, AlertCircle, Lock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Server, ArrowRight, ArrowLeft, AlertCircle, Lock, CheckCircle2, XCircle, Loader2, Globe, Key } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type ConnectionMethod = "ip" | "smtp" | "api";
+
 interface StepIpSmtpProps {
+  connectionMethod: ConnectionMethod;
+  setConnectionMethod: (value: ConnectionMethod) => void;
   ipAddress: string;
   setIpAddress: (value: string) => void;
   smtpHost: string;
@@ -19,6 +25,10 @@ interface StepIpSmtpProps {
   setSmtpUsername: (value: string) => void;
   smtpPassword: string;
   setSmtpPassword: (value: string) => void;
+  apiKey: string;
+  setApiKey: (value: string) => void;
+  apiProvider: string;
+  setApiProvider: (value: string) => void;
   volume: number[];
   setVolume: (value: number[]) => void;
   onBack: () => void;
@@ -26,6 +36,8 @@ interface StepIpSmtpProps {
 }
 
 const StepIpSmtp = ({
+  connectionMethod,
+  setConnectionMethod,
   ipAddress,
   setIpAddress,
   smtpHost,
@@ -36,6 +48,10 @@ const StepIpSmtp = ({
   setSmtpUsername,
   smtpPassword,
   setSmtpPassword,
+  apiKey,
+  setApiKey,
+  apiProvider,
+  setApiProvider,
   volume,
   setVolume,
   onBack,
@@ -48,7 +64,21 @@ const StepIpSmtp = ({
     details?: string;
   } | null>(null);
 
-  const canTest = smtpHost && smtpPort && smtpUsername && smtpPassword;
+  // Validation based on selected method
+  const isMethodValid = () => {
+    switch (connectionMethod) {
+      case "ip":
+        return ipAddress.trim() !== "";
+      case "smtp":
+        return smtpHost && smtpPort && smtpUsername && smtpPassword;
+      case "api":
+        return apiKey.trim() !== "" && apiProvider;
+      default:
+        return false;
+    }
+  };
+
+  const canTest = connectionMethod === "smtp" && smtpHost && smtpPort && smtpUsername && smtpPassword;
 
   const testConnection = async () => {
     if (!canTest) {
@@ -95,142 +125,273 @@ const StepIpSmtp = ({
     }
   };
 
+  const handleNext = () => {
+    if (!isMethodValid()) {
+      toast.error("Please complete at least one connection method");
+      return;
+    }
+    onNext();
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Server className="w-5 h-5 text-primary" />
-          Step 2: IP & SMTP Configuration
+          Step 2: Server Configuration
         </CardTitle>
         <CardDescription>
-          Configure your sending IP and SMTP server details for blacklist monitoring
+          Choose one method to configure your email sending infrastructure
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="ipAddress">Sending IP Address</Label>
-            <Input
-              id="ipAddress"
-              placeholder="e.g., 192.168.1.1"
-              value={ipAddress}
-              onChange={(e) => setIpAddress(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Your outbound email server IP
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="smtpHost">SMTP Host *</Label>
-            <Input
-              id="smtpHost"
-              placeholder="e.g., smtp.yourdomain.com"
-              value={smtpHost}
-              onChange={(e) => setSmtpHost(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="smtpPort">SMTP Port *</Label>
-            <Input
-              id="smtpPort"
-              type="number"
-              placeholder="587"
-              value={smtpPort}
-              onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Common: 25, 587, 465
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="smtpUsername">SMTP Username *</Label>
-            <Input
-              id="smtpUsername"
-              placeholder="e.g., user@yourdomain.com"
-              value={smtpUsername}
-              onChange={(e) => setSmtpUsername(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="smtpPassword" className="flex items-center gap-2">
-            <Lock className="w-3 h-3" />
-            SMTP Password *
-          </Label>
-          <Input
-            id="smtpPassword"
-            type="password"
-            placeholder="Enter your SMTP password"
-            value={smtpPassword}
-            onChange={(e) => setSmtpPassword(e.target.value)}
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            Your credentials are used only for connectivity testing and are never stored
-          </p>
-        </div>
-
-        {/* Test Connection Button */}
+        {/* Connection Method Selection */}
         <div className="space-y-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={testConnection}
-            disabled={!canTest || isTesting}
-            className="w-full"
+          <Label>Connection Method (choose one) *</Label>
+          <RadioGroup
+            value={connectionMethod}
+            onValueChange={(value) => setConnectionMethod(value as ConnectionMethod)}
+            className="grid gap-3"
           >
-            {isTesting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Testing Connection...
-              </>
-            ) : (
-              <>
-                <Server className="w-4 h-4 mr-2" />
-                Test SMTP Connection
-              </>
-            )}
-          </Button>
-
-          {testResult && (
             <div
-              className={`p-3 rounded-lg flex items-start gap-2 ${
-                testResult.success
-                  ? "bg-primary/10 border border-primary/30"
-                  : "bg-destructive/10 border border-destructive/30"
+              className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+                connectionMethod === "ip"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
               }`}
+              onClick={() => setConnectionMethod("ip")}
             >
-              {testResult.success ? (
-                <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
-              ) : (
-                <XCircle className="w-4 h-4 text-destructive mt-0.5" />
-              )}
+              <RadioGroupItem value="ip" id="method-ip" />
+              <Globe className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
-                <p
-                  className={`text-sm font-medium ${
-                    testResult.success ? "text-primary" : "text-destructive"
-                  }`}
-                >
-                  {testResult.message}
+                <Label htmlFor="method-ip" className="cursor-pointer font-medium">
+                  IP Address Only
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Check blacklist status for your sending IP
                 </p>
-                {testResult.details && typeof testResult.details === "string" && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {testResult.details}
-                  </p>
-                )}
               </div>
             </div>
-          )}
+
+            <div
+              className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+                connectionMethod === "smtp"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+              onClick={() => setConnectionMethod("smtp")}
+            >
+              <RadioGroupItem value="smtp" id="method-smtp" />
+              <Server className="w-5 h-5 text-muted-foreground" />
+              <div className="flex-1">
+                <Label htmlFor="method-smtp" className="cursor-pointer font-medium">
+                  SMTP Server
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Full SMTP configuration with connectivity test
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+                connectionMethod === "api"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+              onClick={() => setConnectionMethod("api")}
+            >
+              <RadioGroupItem value="api" id="method-api" />
+              <Key className="w-5 h-5 text-muted-foreground" />
+              <div className="flex-1">
+                <Label htmlFor="method-api" className="cursor-pointer font-medium">
+                  API Key
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Use email service provider API (SendGrid, Mailgun, etc.)
+                </p>
+              </div>
+            </div>
+          </RadioGroup>
         </div>
+
+        {/* IP Address Fields */}
+        {connectionMethod === "ip" && (
+          <div className="space-y-4 p-4 rounded-lg bg-accent/30 border border-border">
+            <div className="space-y-2">
+              <Label htmlFor="ipAddress">Sending IP Address *</Label>
+              <Input
+                id="ipAddress"
+                placeholder="e.g., 192.168.1.1"
+                value={ipAddress}
+                onChange={(e) => setIpAddress(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Your outbound email server IP address
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* SMTP Fields */}
+        {connectionMethod === "smtp" && (
+          <div className="space-y-4 p-4 rounded-lg bg-accent/30 border border-border">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="smtpHost">SMTP Host *</Label>
+                <Input
+                  id="smtpHost"
+                  placeholder="e.g., smtp.yourdomain.com"
+                  value={smtpHost}
+                  onChange={(e) => setSmtpHost(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="smtpPort">SMTP Port *</Label>
+                <Input
+                  id="smtpPort"
+                  type="number"
+                  placeholder="587"
+                  value={smtpPort}
+                  onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Common: 25, 587, 465
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="smtpUsername">SMTP Username *</Label>
+                <Input
+                  id="smtpUsername"
+                  placeholder="e.g., user@yourdomain.com"
+                  value={smtpUsername}
+                  onChange={(e) => setSmtpUsername(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="smtpPassword" className="flex items-center gap-2">
+                  <Lock className="w-3 h-3" />
+                  SMTP Password *
+                </Label>
+                <Input
+                  id="smtpPassword"
+                  type="password"
+                  placeholder="Enter your SMTP password"
+                  value={smtpPassword}
+                  onChange={(e) => setSmtpPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Your credentials are used only for connectivity testing and are never stored
+            </p>
+
+            {/* Test Connection Button */}
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={testConnection}
+                disabled={!canTest || isTesting}
+                className="w-full"
+              >
+                {isTesting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Testing Connection...
+                  </>
+                ) : (
+                  <>
+                    <Server className="w-4 h-4 mr-2" />
+                    Test SMTP Connection
+                  </>
+                )}
+              </Button>
+
+              {testResult && (
+                <div
+                  className={`p-3 rounded-lg flex items-start gap-2 ${
+                    testResult.success
+                      ? "bg-primary/10 border border-primary/30"
+                      : "bg-destructive/10 border border-destructive/30"
+                  }`}
+                >
+                  {testResult.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-destructive mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p
+                      className={`text-sm font-medium ${
+                        testResult.success ? "text-primary" : "text-destructive"
+                      }`}
+                    >
+                      {testResult.message}
+                    </p>
+                    {testResult.details && typeof testResult.details === "string" && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {testResult.details}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* API Key Fields */}
+        {connectionMethod === "api" && (
+          <div className="space-y-4 p-4 rounded-lg bg-accent/30 border border-border">
+            <div className="space-y-2">
+              <Label htmlFor="apiProvider">Email Service Provider *</Label>
+              <Select value={apiProvider} onValueChange={setApiProvider}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sendgrid">SendGrid</SelectItem>
+                  <SelectItem value="mailgun">Mailgun</SelectItem>
+                  <SelectItem value="ses">Amazon SES</SelectItem>
+                  <SelectItem value="postmark">Postmark</SelectItem>
+                  <SelectItem value="sparkpost">SparkPost</SelectItem>
+                  <SelectItem value="mailchimp">Mailchimp Transactional</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="apiKey" className="flex items-center gap-2">
+                <Key className="w-3 h-3" />
+                API Key *
+              </Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder="Enter your API key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Your API key is used only for verification and is never stored
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -275,7 +436,7 @@ const StepIpSmtp = ({
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <Button onClick={onNext} className="flex-1">
+          <Button onClick={handleNext} disabled={!isMethodValid()} className="flex-1">
             Next: Email Content
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
