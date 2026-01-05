@@ -301,16 +301,19 @@ const StepIpSmtp = ({
 
               <div className="space-y-2">
                 <Label htmlFor="smtpPort">SMTP Port *</Label>
-                <Input
-                  id="smtpPort"
-                  type="number"
-                  placeholder="587"
-                  value={smtpPort}
-                  onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
-                  required
-                />
+                <Select value={smtpPort.toString()} onValueChange={(value) => setSmtpPort(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select port" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="25">25 (Standard SMTP)</SelectItem>
+                    <SelectItem value="465">465 (SSL/TLS)</SelectItem>
+                    <SelectItem value="587">587 (STARTTLS - Recommended)</SelectItem>
+                    <SelectItem value="2525">2525 (Alternative)</SelectItem>
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">
-                  Common: 25, 587, 465
+                  587 is recommended for most providers
                 </p>
               </div>
             </div>
