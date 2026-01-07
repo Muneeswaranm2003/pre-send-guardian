@@ -1,3 +1,4 @@
+import { useMemo, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
+import { SPAM_TRIGGER_WORDS } from "@/constants";
 
 interface StepEmailContentProps {
   subject: string;
@@ -15,22 +17,43 @@ interface StepEmailContentProps {
   onNext: () => void;
 }
 
-const StepEmailContent = ({
+interface WarningAlertProps {
+  title: string;
+  description: string;
+}
+
+const WarningAlert = memo(function WarningAlert({ title, description }: WarningAlertProps) {
+  return (
+    <div className="p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/30 flex items-start gap-2">
+      <AlertCircle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5 shrink-0" />
+      <div className="text-sm">
+        <p className="font-medium text-foreground">{title}</p>
+        <p className="text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+});
+
+function StepEmailContent({
   subject,
   setSubject,
   emailContent,
   setEmailContent,
   onBack,
   onNext,
-}: StepEmailContentProps) => {
-  const spamWords = ["free", "urgent", "act now", "click here", "limited time", "winner"];
-  const foundSpamWords = spamWords.filter(
-    (word) =>
-      emailContent.toLowerCase().includes(word) ||
-      subject.toLowerCase().includes(word)
-  );
-
-  const linkCount = (emailContent.match(/http/gi) || []).length;
+}: StepEmailContentProps) {
+  const { foundSpamWords, linkCount } = useMemo(() => {
+    const lowerContent = emailContent.toLowerCase();
+    const lowerSubject = subject.toLowerCase();
+    
+    const found = SPAM_TRIGGER_WORDS.filter(
+      (word) => lowerContent.includes(word) || lowerSubject.includes(word)
+    );
+    
+    const links = (emailContent.match(/http/gi) || []).length;
+    
+    return { foundSpamWords: found, linkCount: links };
+  }, [emailContent, subject]);
 
   return (
     <Card>
@@ -83,27 +106,17 @@ const StepEmailContent = ({
         {/* Real-time warnings */}
         <div className="space-y-2">
           {foundSpamWords.length > 0 && (
-            <div className="p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/30 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">Spam trigger words detected</p>
-                <p className="text-muted-foreground">
-                  Found: {foundSpamWords.join(", ")}
-                </p>
-              </div>
-            </div>
+            <WarningAlert
+              title="Spam trigger words detected"
+              description={`Found: ${foundSpamWords.join(", ")}`}
+            />
           )}
 
           {linkCount > 5 && (
-            <div className="p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/30 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">Too many links</p>
-                <p className="text-muted-foreground">
-                  {linkCount} links found. Recommend keeping under 5.
-                </p>
-              </div>
-            </div>
+            <WarningAlert
+              title="Too many links"
+              description={`${linkCount} links found. Recommend keeping under 5.`}
+            />
           )}
         </div>
 
@@ -120,6 +133,6 @@ const StepEmailContent = ({
       </CardContent>
     </Card>
   );
-};
+}
 
-export default StepEmailContent;
+export default memo(StepEmailContent);

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,10 +13,11 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useDashboard } from "@/hooks/useDashboard";
+import { FullPageSpinner } from "@/components/ui/loading-spinner";
+import { StatusIcon } from "@/components/ui/status-icon";
+import { HealthBadge } from "@/components/ui/health-badge";
 import {
-  Shield,
   Plus,
   RefreshCw,
   Bell,
@@ -26,41 +26,22 @@ import {
   XCircle,
   AlertTriangle,
   Activity,
-  Server,
-  TrendingUp,
-  Clock,
 } from "lucide-react";
-
-interface MonitoredDomain {
-  id: string;
-  domain: string;
-  ip_address: string | null;
-  overall_health: number;
-  spf_status: string | null;
-  dkim_status: string | null;
-  dmarc_status: string | null;
-  blacklist_status: string | null;
-  last_check_at: string | null;
-  is_active: boolean;
-}
-
-interface Alert {
-  id: string;
-  alert_type: string;
-  severity: string;
-  message: string;
-  is_read: boolean;
-  created_at: string;
-  domain_id: string;
-}
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [domains, setDomains] = useState<MonitoredDomain[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const {
+    domains,
+    alerts,
+    loading,
+    refreshing,
+    healthyDomains,
+    warningDomains,
+    criticalDomains,
+    refreshAllDomains,
+    markAlertRead,
+  } = useDashboard(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -68,121 +49,16 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-      // Set up auto-refresh every 5 minutes
-      const interval = setInterval(fetchData, 5 * 60 * 1000);
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
-  const fetchData = async () => {
-    try {
-      // Fetch domains
-      const { data: domainsData, error: domainsError } = await supabase
-        .from("monitored_domains")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (domainsError) throw domainsError;
-      setDomains(domainsData || []);
-
-      // Fetch alerts
-      const { data: alertsData, error: alertsError } = await supabase
-        .from("monitoring_alerts")
-        .select("*")
-        .eq("is_read", false)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (alertsError) throw alertsError;
-      setAlerts(alertsData || []);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load dashboard data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshAllDomains = async () => {
-    setRefreshing(true);
-    toast.info("Refreshing all domains...");
-
-    for (const domain of domains) {
-      try {
-        // Verify DNS
-        const { data: dnsData } = await supabase.functions.invoke("verify-dns", {
-          body: { domain: domain.domain, dkimSelector: "google" },
-        });
-
-        // Check blacklists if IP is set
-        let blacklistStatus = "unknown";
-        if (domain.ip_address) {
-          const { data: blData } = await supabase.functions.invoke("check-blacklist", {
-            body: { ip: domain.ip_address, domain: domain.domain },
-          });
-          if (blData?.summary) {
-            blacklistStatus = blData.summary.status;
-          }
-        }
-
-        // Update domain record
-        await supabase
-          .from("monitored_domains")
-          .update({
-            spf_status: dnsData?.spf?.valid ? "valid" : dnsData?.spf?.found ? "invalid" : "missing",
-            dkim_status: dnsData?.dkim?.valid ? "valid" : dnsData?.dkim?.found ? "invalid" : "missing",
-            dmarc_status: dnsData?.dmarc?.valid ? "valid" : dnsData?.dmarc?.found ? "invalid" : "missing",
-            blacklist_status: blacklistStatus,
-            overall_health: dnsData?.overallScore || 0,
-            last_check_at: new Date().toISOString(),
-          })
-          .eq("id", domain.id);
-      } catch (error) {
-        console.error(`Error refreshing ${domain.domain}:`, error);
-      }
-    }
-
-    await fetchData();
-    setRefreshing(false);
-    toast.success("All domains refreshed!");
-  };
-
-  const markAlertRead = async (alertId: string) => {
-    await supabase.from("monitoring_alerts").update({ is_read: true }).eq("id", alertId);
-    setAlerts(alerts.filter((a) => a.id !== alertId));
-  };
-
-  const getHealthBadge = (health: number) => {
-    if (health >= 80) {
-      return <Badge className="bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/80">Healthy</Badge>;
-    } else if (health >= 50) {
-      return <Badge className="bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]/80">Warning</Badge>;
-    } else {
-      return <Badge variant="destructive">Critical</Badge>;
-    }
-  };
-
-  const getStatusIcon = (status: string | null) => {
-    if (status === "valid") return <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />;
-    if (status === "invalid") return <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />;
-    if (status === "missing") return <XCircle className="w-4 h-4 text-destructive" />;
-    return <Clock className="w-4 h-4 text-muted-foreground" />;
-  };
-
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <FullPageSpinner />;
   }
 
-  const healthyDomains = domains.filter((d) => d.overall_health >= 80).length;
-  const warningDomains = domains.filter((d) => d.overall_health >= 50 && d.overall_health < 80).length;
-  const criticalDomains = domains.filter((d) => d.overall_health < 50).length;
+  const statsCards = [
+    { icon: Globe, value: domains.length, label: "Total Domains", colorClass: "bg-primary/10", iconClass: "text-primary" },
+    { icon: CheckCircle, value: healthyDomains, label: "Healthy", colorClass: "bg-[hsl(var(--success))]/10", iconClass: "text-[hsl(var(--success))]" },
+    { icon: AlertTriangle, value: warningDomains, label: "Warnings", colorClass: "bg-[hsl(var(--warning))]/10", iconClass: "text-[hsl(var(--warning))]" },
+    { icon: XCircle, value: criticalDomains, label: "Critical", colorClass: "bg-destructive/10", iconClass: "text-destructive" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,61 +86,21 @@ const Dashboard = () => {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-primary/10">
-                    <Globe className="w-6 h-6 text-primary" />
+            {statsCards.map(({ icon: Icon, value, label, colorClass, iconClass }, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-lg ${colorClass}`}>
+                      <Icon className={`w-6 h-6 ${iconClass}`} />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{value}</p>
+                      <p className="text-sm text-muted-foreground">{label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{domains.length}</p>
-                    <p className="text-sm text-muted-foreground">Total Domains</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-[hsl(var(--success))]/10">
-                    <CheckCircle className="w-6 h-6 text-[hsl(var(--success))]" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{healthyDomains}</p>
-                    <p className="text-sm text-muted-foreground">Healthy</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-[hsl(var(--warning))]/10">
-                    <AlertTriangle className="w-6 h-6 text-[hsl(var(--warning))]" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{warningDomains}</p>
-                    <p className="text-sm text-muted-foreground">Warnings</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-destructive/10">
-                    <XCircle className="w-6 h-6 text-destructive" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{criticalDomains}</p>
-                    <p className="text-sm text-muted-foreground">Critical</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
@@ -314,20 +150,20 @@ const Dashboard = () => {
                                   <span className="font-medium">{domain.domain}</span>
                                 </div>
                               </TableCell>
-                              <TableCell>{getHealthBadge(domain.overall_health)}</TableCell>
-                              <TableCell>{getStatusIcon(domain.spf_status)}</TableCell>
-                              <TableCell>{getStatusIcon(domain.dkim_status)}</TableCell>
-                              <TableCell>{getStatusIcon(domain.dmarc_status)}</TableCell>
                               <TableCell>
-                                {domain.blacklist_status === "clean" ? (
-                                  <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
-                                ) : domain.blacklist_status === "warning" ? (
-                                  <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />
-                                ) : domain.blacklist_status === "critical" ? (
-                                  <XCircle className="w-4 h-4 text-destructive" />
-                                ) : (
-                                  <Clock className="w-4 h-4 text-muted-foreground" />
-                                )}
+                                <HealthBadge health={domain.overall_health} />
+                              </TableCell>
+                              <TableCell>
+                                <StatusIcon status={domain.spf_status} />
+                              </TableCell>
+                              <TableCell>
+                                <StatusIcon status={domain.dkim_status} />
+                              </TableCell>
+                              <TableCell>
+                                <StatusIcon status={domain.dmarc_status} />
+                              </TableCell>
+                              <TableCell>
+                                <StatusIcon status={domain.blacklist_status} />
                               </TableCell>
                               <TableCell className="text-muted-foreground text-sm">
                                 {domain.last_check_at
@@ -363,41 +199,11 @@ const Dashboard = () => {
                   ) : (
                     <div className="space-y-3">
                       {alerts.map((alert) => (
-                        <div
+                        <AlertItem
                           key={alert.id}
-                          className={`p-3 rounded-lg border ${
-                            alert.severity === "critical"
-                              ? "border-destructive/30 bg-destructive/5"
-                              : alert.severity === "warning"
-                              ? "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5"
-                              : "border-border bg-accent/50"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2">
-                              {alert.severity === "critical" ? (
-                                <XCircle className="w-4 h-4 text-destructive mt-0.5" />
-                              ) : alert.severity === "warning" ? (
-                                <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5" />
-                              ) : (
-                                <Bell className="w-4 h-4 text-primary mt-0.5" />
-                              )}
-                              <div>
-                                <p className="text-sm font-medium text-foreground">{alert.message}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(alert.created_at).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => markAlertRead(alert.id)}
-                            >
-                              Dismiss
-                            </Button>
-                          </div>
-                        </div>
+                          alert={alert}
+                          onDismiss={() => markAlertRead(alert.id)}
+                        />
                       ))}
                     </div>
                   )}
@@ -412,5 +218,50 @@ const Dashboard = () => {
     </div>
   );
 };
+
+interface AlertItemProps {
+  alert: {
+    id: string;
+    severity: string;
+    message: string;
+    created_at: string;
+  };
+  onDismiss: () => void;
+}
+
+function AlertItem({ alert, onDismiss }: AlertItemProps) {
+  const severityStyles = {
+    critical: "border-destructive/30 bg-destructive/5",
+    warning: "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5",
+    info: "border-border bg-accent/50",
+  };
+
+  const style = severityStyles[alert.severity as keyof typeof severityStyles] || severityStyles.info;
+
+  return (
+    <div className={`p-3 rounded-lg border ${style}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2">
+          {alert.severity === "critical" ? (
+            <XCircle className="w-4 h-4 text-destructive mt-0.5" />
+          ) : alert.severity === "warning" ? (
+            <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5" />
+          ) : (
+            <Bell className="w-4 h-4 text-primary mt-0.5" />
+          )}
+          <div>
+            <p className="text-sm font-medium text-foreground">{alert.message}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {new Date(alert.created_at).toLocaleString()}
+            </p>
+          </div>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onDismiss}>
+          Dismiss
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default Dashboard;
