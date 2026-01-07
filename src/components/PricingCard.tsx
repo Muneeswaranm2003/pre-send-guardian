@@ -1,6 +1,8 @@
+import { memo } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface PricingCardProps {
   name: string;
@@ -13,7 +15,7 @@ interface PricingCardProps {
   onSelect?: () => void;
 }
 
-const PricingCard = ({
+function PricingCard({
   name,
   price,
   period = "/month",
@@ -22,14 +24,15 @@ const PricingCard = ({
   popular = false,
   buttonText,
   onSelect,
-}: PricingCardProps) => {
+}: PricingCardProps) {
   return (
     <Card
-      className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${
+      className={cn(
+        "relative overflow-hidden transition-all duration-300 hover:shadow-xl",
         popular
           ? "border-primary shadow-lg scale-105 z-10"
           : "border-border/50 hover:border-primary/30"
-      }`}
+      )}
     >
       {popular && (
         <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-bl-lg">
@@ -66,6 +69,6 @@ const PricingCard = ({
       </CardContent>
     </Card>
   );
-};
+}
 
-export default PricingCard;
+export default memo(PricingCard);

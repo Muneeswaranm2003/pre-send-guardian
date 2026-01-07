@@ -1,4 +1,5 @@
-import { LucideIcon } from "lucide-react";
+import { memo } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface FeatureCardProps {
@@ -8,9 +9,9 @@ interface FeatureCardProps {
   delay?: number;
 }
 
-const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardProps) => {
+function FeatureCard({ icon: Icon, title, description, delay = 0 }: FeatureCardProps) {
   return (
-    <Card 
+    <Card
       className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden"
       style={{ animationDelay: `${delay}ms` }}
     >
@@ -23,6 +24,6 @@ const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardP
       </CardContent>
     </Card>
   );
-};
+}
 
-export default FeatureCard;
+export default memo(FeatureCard);

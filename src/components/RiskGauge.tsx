@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 
 interface RiskGaugeProps {
   riskScore: number;
@@ -6,26 +6,26 @@ interface RiskGaugeProps {
   animated?: boolean;
 }
 
-const RiskGauge = ({ riskScore, size = "md", animated = true }: RiskGaugeProps) => {
+const SIZE_CONFIG = {
+  sm: { width: 120, strokeWidth: 8, fontSize: "text-2xl" },
+  md: { width: 180, strokeWidth: 10, fontSize: "text-4xl" },
+  lg: { width: 240, strokeWidth: 12, fontSize: "text-5xl" },
+} as const;
+
+function getRiskLevel(score: number) {
+  if (score <= 30) return { label: "LOW", color: "hsl(var(--success))" };
+  if (score <= 60) return { label: "MEDIUM", color: "hsl(var(--warning))" };
+  return { label: "HIGH", color: "hsl(var(--destructive))" };
+}
+
+function RiskGauge({ riskScore, size = "md", animated = true }: RiskGaugeProps) {
   const [displayScore, setDisplayScore] = useState(animated ? 0 : riskScore);
+  const animationRef = useRef<number | null>(null);
 
-  const sizeConfig = {
-    sm: { width: 120, strokeWidth: 8, fontSize: "text-2xl" },
-    md: { width: 180, strokeWidth: 10, fontSize: "text-4xl" },
-    lg: { width: 240, strokeWidth: 12, fontSize: "text-5xl" },
-  };
-
-  const config = sizeConfig[size];
+  const config = SIZE_CONFIG[size];
   const radius = (config.width - config.strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (displayScore / 100) * circumference;
-
-  const getRiskLevel = (score: number) => {
-    if (score <= 30) return { label: "LOW", color: "hsl(var(--success))", gradient: "var(--gradient-risk-low)" };
-    if (score <= 60) return { label: "MEDIUM", color: "hsl(var(--warning))", gradient: "var(--gradient-risk-medium)" };
-    return { label: "HIGH", color: "hsl(var(--destructive))", gradient: "var(--gradient-risk-high)" };
-  };
-
   const risk = getRiskLevel(riskScore);
 
   useEffect(() => {
@@ -33,25 +33,31 @@ const RiskGauge = ({ riskScore, size = "md", animated = true }: RiskGaugeProps) 
       setDisplayScore(riskScore);
       return;
     }
-    
+
     const duration = 1500;
     const startTime = Date.now();
     const startScore = displayScore;
-    
+
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const easeOut = 1 - Math.pow(1 - progress, 3);
       const current = startScore + (riskScore - startScore) * easeOut;
-      
+
       setDisplayScore(Math.round(current));
-      
+
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
       }
     };
-    
-    requestAnimationFrame(animate);
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, [riskScore, animated]);
 
   return (
@@ -61,6 +67,8 @@ const RiskGauge = ({ riskScore, size = "md", animated = true }: RiskGaugeProps) 
         height={config.width}
         viewBox={`0 0 ${config.width} ${config.width}`}
         className="transform -rotate-90"
+        role="img"
+        aria-label={`Risk score: ${displayScore}% - ${risk.label} risk`}
       >
         {/* Background circle */}
         <circle
@@ -92,7 +100,7 @@ const RiskGauge = ({ riskScore, size = "md", animated = true }: RiskGaugeProps) 
         <span className={`${config.fontSize} font-bold text-foreground`}>
           {displayScore}%
         </span>
-        <span 
+        <span
           className="text-sm font-semibold tracking-wider"
           style={{ color: risk.color }}
         >
@@ -101,6 +109,6 @@ const RiskGauge = ({ riskScore, size = "md", animated = true }: RiskGaugeProps) 
       </div>
     </div>
   );
-};
+}
 
-export default RiskGauge;
+export default memo(RiskGauge);

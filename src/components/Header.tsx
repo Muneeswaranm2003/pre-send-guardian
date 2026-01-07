@@ -1,8 +1,8 @@
+import { memo, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
 import spamguardLogo from "@/assets/spamguard-logo.png";
-import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -11,32 +11,41 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { NavLinkItem } from "@/types";
 
-const Header = () => {
+function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
+  const navLinks: NavLinkItem[] = [
     { name: "Home", path: "/" },
     { name: "Simulator", path: "/simulator" },
     ...(user ? [{ name: "Dashboard", path: "/dashboard" }] : []),
     { name: "Pricing", path: "/#pricing" },
   ];
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await signOut();
     navigate("/");
-  };
+  }, [signOut, navigate]);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen((prev) => !prev);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <img 
-            src={spamguardLogo} 
-            alt="SpamGuard Logo" 
+          <img
+            src={spamguardLogo}
+            alt="SpamGuard Logo"
             className="w-10 h-10 rounded-lg group-hover:scale-105 transition-transform"
           />
           <span className="text-xl font-bold text-foreground">SpamGuard</span>
@@ -94,7 +103,8 @@ const Header = () => {
         {/* Mobile Menu Button */}
         <button
           className="md:hidden p-2"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={toggleMobileMenu}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? (
             <X className="w-6 h-6 text-foreground" />
@@ -113,7 +123,7 @@ const Header = () => {
                 key={link.name}
                 to={link.path}
                 className="text-sm font-medium text-foreground py-2"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
               >
                 {link.name}
               </Link>
@@ -145,6 +155,6 @@ const Header = () => {
       )}
     </header>
   );
-};
+}
 
-export default Header;
+export default memo(Header);
