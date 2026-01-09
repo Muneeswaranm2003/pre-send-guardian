@@ -11,7 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Globe, ArrowRight, Shield, Lock, Key, Plus, X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info } from "lucide-react";
 
 // Common DKIM selectors used by various email providers
 const COMMON_DKIM_SELECTORS = [
@@ -118,55 +124,119 @@ const StepDomain = ({
 
         <div className="space-y-2">
           <Label htmlFor="domainAge">Domain Age *</Label>
-          <Select value={domainAge} onValueChange={setDomainAge}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select domain age (required)" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="new">
-                <span className="flex items-center gap-2">
-                  Less than 2 weeks
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive/15 text-destructive">High Risk</span>
-                </span>
-              </SelectItem>
-              <SelectItem value="month">
-                <span className="flex items-center gap-2">
-                  2 weeks - 1 month
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive/15 text-destructive">High Risk</span>
-                </span>
-              </SelectItem>
-              <SelectItem value="quarter">
-                <span className="flex items-center gap-2">
-                  1 - 3 months
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
-                </span>
-              </SelectItem>
-              <SelectItem value="half">
-                <span className="flex items-center gap-2">
-                  3 - 6 months
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
-                </span>
-              </SelectItem>
-              <SelectItem value="year">
-                <span className="flex items-center gap-2">
-                  6 months - 1 year
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--info))]/15 text-[hsl(var(--info))]">Low Risk</span>
-                </span>
-              </SelectItem>
-              <SelectItem value="established">
-                <span className="flex items-center gap-2">
-                  1 - 2 years
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
-                </span>
-              </SelectItem>
-              <SelectItem value="mature">
-                <span className="flex items-center gap-2">
-                  2+ years
-                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <TooltipProvider delayDuration={200}>
+            <Select value={domainAge} onValueChange={setDomainAge}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select domain age (required)" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="new">
+                      <span className="flex items-center gap-2">
+                        Less than 2 weeks
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive/15 text-destructive">High Risk</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Brand new domains have no sending history. ISPs view them with suspicion as spammers often use fresh domains.</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="month">
+                      <span className="flex items-center gap-2">
+                        2 weeks - 1 month
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive/15 text-destructive">High Risk</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Still in the critical warmup phase. Sending volume should be kept very low to build reputation.</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="quarter">
+                      <span className="flex items-center gap-2">
+                        1 - 3 months
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Building reputation but still vulnerable. Consistent sending patterns and good engagement are crucial.</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="half">
+                      <span className="flex items-center gap-2">
+                        3 - 6 months
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Domain is maturing. Can handle moderate volumes but sudden spikes may still trigger filters.</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="year">
+                      <span className="flex items-center gap-2">
+                        6 months - 1 year
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--info))]/15 text-[hsl(var(--info))]">Low Risk</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Established sending history. ISPs have enough data to assess reputation reliably.</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="established">
+                      <span className="flex items-center gap-2">
+                        1 - 2 years
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Well-established domain with proven track record. Enjoys higher sending limits and better inbox placement.</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SelectItem value="mature">
+                      <span className="flex items-center gap-2">
+                        2+ years
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p>Mature domain with excellent reputation history. Maximum trust from ISPs and highest deliverability potential.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </SelectContent>
+            </Select>
+          </TooltipProvider>
           <p className="text-xs text-muted-foreground">
             Newer domains have higher spam risk and need careful warming up
           </p>
