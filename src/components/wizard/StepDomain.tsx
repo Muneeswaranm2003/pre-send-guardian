@@ -126,7 +126,10 @@ const StepDomain = ({
               <SelectItem value="new">Less than 2 weeks</SelectItem>
               <SelectItem value="month">2 weeks - 1 month</SelectItem>
               <SelectItem value="quarter">1 - 3 months</SelectItem>
-              <SelectItem value="established">3+ months</SelectItem>
+              <SelectItem value="half">3 - 6 months</SelectItem>
+              <SelectItem value="year">6 months - 1 year</SelectItem>
+              <SelectItem value="established">1 - 2 years</SelectItem>
+              <SelectItem value="mature">2+ years</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
