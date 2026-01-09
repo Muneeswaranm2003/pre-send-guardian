@@ -122,14 +122,49 @@ const StepDomain = ({
             <SelectTrigger>
               <SelectValue placeholder="Select domain age (required)" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="new">Less than 2 weeks</SelectItem>
-              <SelectItem value="month">2 weeks - 1 month</SelectItem>
-              <SelectItem value="quarter">1 - 3 months</SelectItem>
-              <SelectItem value="half">3 - 6 months</SelectItem>
-              <SelectItem value="year">6 months - 1 year</SelectItem>
-              <SelectItem value="established">1 - 2 years</SelectItem>
-              <SelectItem value="mature">2+ years</SelectItem>
+            <SelectContent className="bg-popover">
+              <SelectItem value="new">
+                <span className="flex items-center gap-2">
+                  Less than 2 weeks
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive/15 text-destructive">High Risk</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="month">
+                <span className="flex items-center gap-2">
+                  2 weeks - 1 month
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-destructive/15 text-destructive">High Risk</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="quarter">
+                <span className="flex items-center gap-2">
+                  1 - 3 months
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="half">
+                <span className="flex items-center gap-2">
+                  3 - 6 months
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="year">
+                <span className="flex items-center gap-2">
+                  6 months - 1 year
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--info))]/15 text-[hsl(var(--info))]">Low Risk</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="established">
+                <span className="flex items-center gap-2">
+                  1 - 2 years
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
+                </span>
+              </SelectItem>
+              <SelectItem value="mature">
+                <span className="flex items-center gap-2">
+                  2+ years
+                  <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
+                </span>
+              </SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
