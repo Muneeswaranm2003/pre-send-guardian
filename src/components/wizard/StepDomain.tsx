@@ -17,7 +17,53 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info } from "lucide-react";
+import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info, TrendingUp, AlertTriangle } from "lucide-react";
+
+// Volume recommendations based on domain age
+const VOLUME_RECOMMENDATIONS: Record<string, { daily: string; weekly: string; tip: string; color: string }> = {
+  new: {
+    daily: "20-50",
+    weekly: "100-250",
+    tip: "Start very slow. Send to your most engaged contacts only.",
+    color: "destructive",
+  },
+  month: {
+    daily: "50-100",
+    weekly: "250-500",
+    tip: "Gradually increase volume. Monitor bounce rates closely.",
+    color: "destructive",
+  },
+  quarter: {
+    daily: "100-500",
+    weekly: "500-2,500",
+    tip: "Continue warming up. Maintain consistent sending patterns.",
+    color: "warning",
+  },
+  half: {
+    daily: "500-1,000",
+    weekly: "2,500-5,000",
+    tip: "Domain is maturing. Avoid sudden volume spikes.",
+    color: "warning",
+  },
+  year: {
+    daily: "1,000-5,000",
+    weekly: "5,000-25,000",
+    tip: "Good reputation building. Can handle moderate campaigns.",
+    color: "info",
+  },
+  established: {
+    daily: "5,000-10,000",
+    weekly: "25,000-50,000",
+    tip: "Well-established. Focus on maintaining engagement rates.",
+    color: "success",
+  },
+  mature: {
+    daily: "10,000+",
+    weekly: "50,000+",
+    tip: "Maximum sending capacity. Continue monitoring metrics.",
+    color: "success",
+  },
+};
 
 // Common DKIM selectors used by various email providers
 const COMMON_DKIM_SELECTORS = [
@@ -240,6 +286,48 @@ const StepDomain = ({
           <p className="text-xs text-muted-foreground">
             Newer domains have higher spam risk and need careful warming up
           </p>
+
+          {/* Volume recommendations based on domain age */}
+          {domainAge && VOLUME_RECOMMENDATIONS[domainAge] && (
+            <div className={`p-4 rounded-lg border ${
+              VOLUME_RECOMMENDATIONS[domainAge].color === "destructive" 
+                ? "bg-destructive/10 border-destructive/30" 
+                : VOLUME_RECOMMENDATIONS[domainAge].color === "warning"
+                ? "bg-[hsl(var(--warning))]/10 border-[hsl(var(--warning))]/30"
+                : VOLUME_RECOMMENDATIONS[domainAge].color === "info"
+                ? "bg-[hsl(var(--info))]/10 border-[hsl(var(--info))]/30"
+                : "bg-[hsl(var(--success))]/10 border-[hsl(var(--success))]/30"
+            }`}>
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className={`w-4 h-4 ${
+                  VOLUME_RECOMMENDATIONS[domainAge].color === "destructive" 
+                    ? "text-destructive" 
+                    : VOLUME_RECOMMENDATIONS[domainAge].color === "warning"
+                    ? "text-[hsl(var(--warning))]"
+                    : VOLUME_RECOMMENDATIONS[domainAge].color === "info"
+                    ? "text-[hsl(var(--info))]"
+                    : "text-[hsl(var(--success))]"
+                }`} />
+                <span className="font-medium text-foreground text-sm">Recommended Sending Limits</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Daily Volume</p>
+                  <p className="text-lg font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].daily}</p>
+                  <p className="text-xs text-muted-foreground">emails/day</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Weekly Volume</p>
+                  <p className="text-lg font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].weekly}</p>
+                  <p className="text-xs text-muted-foreground">emails/week</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 pt-2 border-t border-border/50">
+                <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-muted-foreground">{VOLUME_RECOMMENDATIONS[domainAge].tip}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
