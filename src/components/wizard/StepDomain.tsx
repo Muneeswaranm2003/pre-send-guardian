@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -17,7 +18,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info, TrendingUp, AlertTriangle } from "lucide-react";
+import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info, TrendingUp, AlertTriangle, Flame } from "lucide-react";
+
+// Domain warmup percentage based on age
+const WARMUP_PERCENTAGE: Record<string, { percent: number; label: string }> = {
+  new: { percent: 5, label: "Just Started" },
+  month: { percent: 15, label: "Early Stage" },
+  quarter: { percent: 35, label: "Building" },
+  half: { percent: 55, label: "Maturing" },
+  year: { percent: 75, label: "Established" },
+  established: { percent: 90, label: "Well Warmed" },
+  mature: { percent: 100, label: "Fully Warmed" },
+};
 
 // Volume recommendations based on domain age
 const VOLUME_RECOMMENDATIONS: Record<string, { daily: string; weekly: string; tip: string; color: string }> = {
@@ -286,6 +298,48 @@ const StepDomain = ({
           <p className="text-xs text-muted-foreground">
             Newer domains have higher spam risk and need careful warming up
           </p>
+
+          {/* Domain warmup progress bar */}
+          {domainAge && WARMUP_PERCENTAGE[domainAge] && (
+            <div className="p-4 rounded-lg border bg-accent/30 border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Flame className={`w-4 h-4 ${
+                    WARMUP_PERCENTAGE[domainAge].percent < 30 
+                      ? "text-destructive" 
+                      : WARMUP_PERCENTAGE[domainAge].percent < 60
+                      ? "text-[hsl(var(--warning))]"
+                      : "text-[hsl(var(--success))]"
+                  }`} />
+                  <span className="font-medium text-foreground text-sm">Domain Warmup Status</span>
+                </div>
+                <span className={`text-sm font-semibold ${
+                  WARMUP_PERCENTAGE[domainAge].percent < 30 
+                    ? "text-destructive" 
+                    : WARMUP_PERCENTAGE[domainAge].percent < 60
+                    ? "text-[hsl(var(--warning))]"
+                    : "text-[hsl(var(--success))]"
+                }`}>
+                  {WARMUP_PERCENTAGE[domainAge].percent}%
+                </span>
+              </div>
+              <Progress 
+                value={WARMUP_PERCENTAGE[domainAge].percent} 
+                className={`h-3 ${
+                  WARMUP_PERCENTAGE[domainAge].percent < 30 
+                    ? "[&>div]:bg-destructive" 
+                    : WARMUP_PERCENTAGE[domainAge].percent < 60
+                    ? "[&>div]:bg-[hsl(var(--warning))]"
+                    : "[&>div]:bg-[hsl(var(--success))]"
+                }`}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                {WARMUP_PERCENTAGE[domainAge].label} — {WARMUP_PERCENTAGE[domainAge].percent < 100 
+                  ? "Continue consistent sending to improve warmup" 
+                  : "Maximum warmup achieved"}
+              </p>
+            </div>
+          )}
 
           {/* Volume recommendations based on domain age */}
           {domainAge && VOLUME_RECOMMENDATIONS[domainAge] && (
