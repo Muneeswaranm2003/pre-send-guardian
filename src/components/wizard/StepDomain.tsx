@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -18,99 +17,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info, TrendingUp, AlertTriangle, Flame, Mail } from "lucide-react";
-
-// Domain warmup percentage based on age
-const WARMUP_PERCENTAGE: Record<string, { percent: number; label: string }> = {
-  new: { percent: 5, label: "Just Started" },
-  month: { percent: 15, label: "Early Stage" },
-  quarter: { percent: 35, label: "Building" },
-  half: { percent: 55, label: "Maturing" },
-  year: { percent: 75, label: "Established" },
-  established: { percent: 90, label: "Well Warmed" },
-  mature: { percent: 100, label: "Fully Warmed" },
-};
-
-// Volume recommendations based on domain age
-const VOLUME_RECOMMENDATIONS: Record<string, { daily: string; weekly: string; tip: string; color: string; providers: { gmail: string; outlook: string; yahoo: string } }> = {
-  new: {
-    daily: "20-50",
-    weekly: "100-250",
-    tip: "Start very slow. Send to your most engaged contacts only.",
-    color: "destructive",
-    providers: {
-      gmail: "10-20/day",
-      outlook: "15-30/day",
-      yahoo: "10-25/day",
-    },
-  },
-  month: {
-    daily: "50-100",
-    weekly: "250-500",
-    tip: "Gradually increase volume. Monitor bounce rates closely.",
-    color: "destructive",
-    providers: {
-      gmail: "30-50/day",
-      outlook: "40-60/day",
-      yahoo: "25-50/day",
-    },
-  },
-  quarter: {
-    daily: "100-500",
-    weekly: "500-2,500",
-    tip: "Continue warming up. Maintain consistent sending patterns.",
-    color: "warning",
-    providers: {
-      gmail: "75-200/day",
-      outlook: "100-300/day",
-      yahoo: "50-200/day",
-    },
-  },
-  half: {
-    daily: "500-1,000",
-    weekly: "2,500-5,000",
-    tip: "Domain is maturing. Avoid sudden volume spikes.",
-    color: "warning",
-    providers: {
-      gmail: "300-600/day",
-      outlook: "400-800/day",
-      yahoo: "250-500/day",
-    },
-  },
-  year: {
-    daily: "1,000-5,000",
-    weekly: "5,000-25,000",
-    tip: "Good reputation building. Can handle moderate campaigns.",
-    color: "info",
-    providers: {
-      gmail: "800-2,500/day",
-      outlook: "1,000-3,500/day",
-      yahoo: "600-2,000/day",
-    },
-  },
-  established: {
-    daily: "5,000-10,000",
-    weekly: "25,000-50,000",
-    tip: "Well-established. Focus on maintaining engagement rates.",
-    color: "success",
-    providers: {
-      gmail: "3,000-6,000/day",
-      outlook: "4,000-8,000/day",
-      yahoo: "2,500-5,000/day",
-    },
-  },
-  mature: {
-    daily: "10,000+",
-    weekly: "50,000+",
-    tip: "Maximum sending capacity. Continue monitoring metrics.",
-    color: "success",
-    providers: {
-      gmail: "8,000+/day",
-      outlook: "10,000+/day",
-      yahoo: "6,000+/day",
-    },
-  },
-};
+import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info } from "lucide-react";
+import DomainWarmupProgress from "./DomainWarmupProgress";
+import VolumeRecommendations from "./VolumeRecommendations";
 
 // Common DKIM selectors used by various email providers
 const COMMON_DKIM_SELECTORS = [
@@ -334,111 +243,12 @@ const StepDomain = ({
             Newer domains have higher spam risk and need careful warming up
           </p>
 
-          {/* Domain warmup progress bar */}
-          {domainAge && WARMUP_PERCENTAGE[domainAge] && (
-            <div className="p-4 rounded-lg border bg-accent/30 border-border">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Flame className={`w-4 h-4 ${
-                    WARMUP_PERCENTAGE[domainAge].percent < 30 
-                      ? "text-destructive" 
-                      : WARMUP_PERCENTAGE[domainAge].percent < 60
-                      ? "text-[hsl(var(--warning))]"
-                      : "text-[hsl(var(--success))]"
-                  }`} />
-                  <span className="font-medium text-foreground text-sm">Domain Warmup Status</span>
-                </div>
-                <span className={`text-sm font-semibold ${
-                  WARMUP_PERCENTAGE[domainAge].percent < 30 
-                    ? "text-destructive" 
-                    : WARMUP_PERCENTAGE[domainAge].percent < 60
-                    ? "text-[hsl(var(--warning))]"
-                    : "text-[hsl(var(--success))]"
-                }`}>
-                  {WARMUP_PERCENTAGE[domainAge].percent}%
-                </span>
-              </div>
-              <Progress 
-                value={WARMUP_PERCENTAGE[domainAge].percent} 
-                className={`h-3 ${
-                  WARMUP_PERCENTAGE[domainAge].percent < 30 
-                    ? "[&>div]:bg-destructive" 
-                    : WARMUP_PERCENTAGE[domainAge].percent < 60
-                    ? "[&>div]:bg-[hsl(var(--warning))]"
-                    : "[&>div]:bg-[hsl(var(--success))]"
-                }`}
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                {WARMUP_PERCENTAGE[domainAge].label} — {WARMUP_PERCENTAGE[domainAge].percent < 100 
-                  ? "Continue consistent sending to improve warmup" 
-                  : "Maximum warmup achieved"}
-              </p>
-            </div>
+          {domainAge && (
+            <DomainWarmupProgress domainAge={domainAge} />
           )}
 
-          {/* Volume recommendations based on domain age */}
-          {domainAge && VOLUME_RECOMMENDATIONS[domainAge] && (
-            <div className={`p-4 rounded-lg border ${
-              VOLUME_RECOMMENDATIONS[domainAge].color === "destructive" 
-                ? "bg-destructive/10 border-destructive/30" 
-                : VOLUME_RECOMMENDATIONS[domainAge].color === "warning"
-                ? "bg-[hsl(var(--warning))]/10 border-[hsl(var(--warning))]/30"
-                : VOLUME_RECOMMENDATIONS[domainAge].color === "info"
-                ? "bg-[hsl(var(--info))]/10 border-[hsl(var(--info))]/30"
-                : "bg-[hsl(var(--success))]/10 border-[hsl(var(--success))]/30"
-            }`}>
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className={`w-4 h-4 ${
-                  VOLUME_RECOMMENDATIONS[domainAge].color === "destructive" 
-                    ? "text-destructive" 
-                    : VOLUME_RECOMMENDATIONS[domainAge].color === "warning"
-                    ? "text-[hsl(var(--warning))]"
-                    : VOLUME_RECOMMENDATIONS[domainAge].color === "info"
-                    ? "text-[hsl(var(--info))]"
-                    : "text-[hsl(var(--success))]"
-                }`} />
-                <span className="font-medium text-foreground text-sm">Recommended Sending Limits</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Daily Volume</p>
-                  <p className="text-lg font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].daily}</p>
-                  <p className="text-xs text-muted-foreground">emails/day</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Weekly Volume</p>
-                  <p className="text-lg font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].weekly}</p>
-                  <p className="text-xs text-muted-foreground">emails/week</p>
-                </div>
-              </div>
-              
-              {/* Provider-specific recommendations */}
-              <div className="mb-3 pt-3 border-t border-border/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-xs font-medium text-foreground">Provider-Specific Limits</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="p-2 rounded-md bg-background/50 border border-border/50">
-                    <p className="text-xs text-muted-foreground mb-0.5">Gmail</p>
-                    <p className="text-sm font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].providers.gmail}</p>
-                  </div>
-                  <div className="p-2 rounded-md bg-background/50 border border-border/50">
-                    <p className="text-xs text-muted-foreground mb-0.5">Outlook</p>
-                    <p className="text-sm font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].providers.outlook}</p>
-                  </div>
-                  <div className="p-2 rounded-md bg-background/50 border border-border/50">
-                    <p className="text-xs text-muted-foreground mb-0.5">Yahoo</p>
-                    <p className="text-sm font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].providers.yahoo}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-2 pt-2 border-t border-border/50">
-                <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-muted-foreground">{VOLUME_RECOMMENDATIONS[domainAge].tip}</p>
-              </div>
-            </div>
+          {domainAge && (
+            <VolumeRecommendations domainAge={domainAge} />
           )}
         </div>
 
