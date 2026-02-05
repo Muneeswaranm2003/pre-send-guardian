@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info, TrendingUp, AlertTriangle, Flame } from "lucide-react";
+import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info, TrendingUp, AlertTriangle, Flame, Mail } from "lucide-react";
 
 // Domain warmup percentage based on age
 const WARMUP_PERCENTAGE: Record<string, { percent: number; label: string }> = {
@@ -32,48 +32,83 @@ const WARMUP_PERCENTAGE: Record<string, { percent: number; label: string }> = {
 };
 
 // Volume recommendations based on domain age
-const VOLUME_RECOMMENDATIONS: Record<string, { daily: string; weekly: string; tip: string; color: string }> = {
+const VOLUME_RECOMMENDATIONS: Record<string, { daily: string; weekly: string; tip: string; color: string; providers: { gmail: string; outlook: string; yahoo: string } }> = {
   new: {
     daily: "20-50",
     weekly: "100-250",
     tip: "Start very slow. Send to your most engaged contacts only.",
     color: "destructive",
+    providers: {
+      gmail: "10-20/day",
+      outlook: "15-30/day",
+      yahoo: "10-25/day",
+    },
   },
   month: {
     daily: "50-100",
     weekly: "250-500",
     tip: "Gradually increase volume. Monitor bounce rates closely.",
     color: "destructive",
+    providers: {
+      gmail: "30-50/day",
+      outlook: "40-60/day",
+      yahoo: "25-50/day",
+    },
   },
   quarter: {
     daily: "100-500",
     weekly: "500-2,500",
     tip: "Continue warming up. Maintain consistent sending patterns.",
     color: "warning",
+    providers: {
+      gmail: "75-200/day",
+      outlook: "100-300/day",
+      yahoo: "50-200/day",
+    },
   },
   half: {
     daily: "500-1,000",
     weekly: "2,500-5,000",
     tip: "Domain is maturing. Avoid sudden volume spikes.",
     color: "warning",
+    providers: {
+      gmail: "300-600/day",
+      outlook: "400-800/day",
+      yahoo: "250-500/day",
+    },
   },
   year: {
     daily: "1,000-5,000",
     weekly: "5,000-25,000",
     tip: "Good reputation building. Can handle moderate campaigns.",
     color: "info",
+    providers: {
+      gmail: "800-2,500/day",
+      outlook: "1,000-3,500/day",
+      yahoo: "600-2,000/day",
+    },
   },
   established: {
     daily: "5,000-10,000",
     weekly: "25,000-50,000",
     tip: "Well-established. Focus on maintaining engagement rates.",
     color: "success",
+    providers: {
+      gmail: "3,000-6,000/day",
+      outlook: "4,000-8,000/day",
+      yahoo: "2,500-5,000/day",
+    },
   },
   mature: {
     daily: "10,000+",
     weekly: "50,000+",
     tip: "Maximum sending capacity. Continue monitoring metrics.",
     color: "success",
+    providers: {
+      gmail: "8,000+/day",
+      outlook: "10,000+/day",
+      yahoo: "6,000+/day",
+    },
   },
 };
 
@@ -376,6 +411,29 @@ const StepDomain = ({
                   <p className="text-xs text-muted-foreground">emails/week</p>
                 </div>
               </div>
+              
+              {/* Provider-specific recommendations */}
+              <div className="mb-3 pt-3 border-t border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs font-medium text-foreground">Provider-Specific Limits</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-2 rounded-md bg-background/50 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-0.5">Gmail</p>
+                    <p className="text-sm font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].providers.gmail}</p>
+                  </div>
+                  <div className="p-2 rounded-md bg-background/50 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-0.5">Outlook</p>
+                    <p className="text-sm font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].providers.outlook}</p>
+                  </div>
+                  <div className="p-2 rounded-md bg-background/50 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-0.5">Yahoo</p>
+                    <p className="text-sm font-semibold text-foreground">{VOLUME_RECOMMENDATIONS[domainAge].providers.yahoo}</p>
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex items-start gap-2 pt-2 border-t border-border/50">
                 <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-muted-foreground">{VOLUME_RECOMMENDATIONS[domainAge].tip}</p>
