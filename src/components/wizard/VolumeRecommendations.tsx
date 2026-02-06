@@ -1,4 +1,10 @@
- import { TrendingUp, AlertTriangle, Mail } from "lucide-react";
+import { TrendingUp, AlertTriangle, Mail, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
  
  // Volume recommendations based on domain age
  export const VOLUME_RECOMMENDATIONS: Record<string, { 
@@ -151,20 +157,43 @@
            <Mail className="w-3.5 h-3.5 text-muted-foreground" />
            <span className="text-xs font-medium text-foreground">Provider-Specific Limits</span>
          </div>
-         <div className="grid grid-cols-3 gap-2">
-           <div className="p-2 rounded-md bg-background/50 border border-border/50">
-             <p className="text-xs text-muted-foreground mb-0.5">Gmail</p>
-             <p className="text-sm font-semibold text-foreground">{recommendation.providers.gmail}</p>
-           </div>
-           <div className="p-2 rounded-md bg-background/50 border border-border/50">
-             <p className="text-xs text-muted-foreground mb-0.5">Outlook</p>
-             <p className="text-sm font-semibold text-foreground">{recommendation.providers.outlook}</p>
-           </div>
-           <div className="p-2 rounded-md bg-background/50 border border-border/50">
-             <p className="text-xs text-muted-foreground mb-0.5">Yahoo</p>
-             <p className="text-sm font-semibold text-foreground">{recommendation.providers.yahoo}</p>
-           </div>
-         </div>
+        <TooltipProvider delayDuration={200}>
+          <div className="grid grid-cols-3 gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="p-2 rounded-md bg-background/50 border border-border/50 cursor-help">
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">Gmail <Info className="w-3 h-3" /></p>
+                  <p className="text-sm font-semibold text-foreground">{recommendation.providers.gmail}</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px]">
+                <p>Gmail uses advanced AI filtering and heavily penalizes new senders. Limits are strictest to protect its large user base.</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="p-2 rounded-md bg-background/50 border border-border/50 cursor-help">
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">Outlook <Info className="w-3 h-3" /></p>
+                  <p className="text-sm font-semibold text-foreground">{recommendation.providers.outlook}</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px]">
+                <p>Outlook/Microsoft 365 uses SmartScreen filtering. It's slightly more lenient than Gmail but enforces strict rate limits per connection.</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="p-2 rounded-md bg-background/50 border border-border/50 cursor-help">
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">Yahoo <Info className="w-3 h-3" /></p>
+                  <p className="text-sm font-semibold text-foreground">{recommendation.providers.yahoo}</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px]">
+                <p>Yahoo uses SpamAssassin-style scoring and is most sensitive to content quality. Lower limits reflect stricter content filtering.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
        </div>
        
        <div className="flex items-start gap-2 pt-2 border-t border-border/50">
