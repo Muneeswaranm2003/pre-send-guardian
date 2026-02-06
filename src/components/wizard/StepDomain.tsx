@@ -20,6 +20,7 @@ import {
 import { Globe, ArrowRight, Shield, Lock, Key, Plus, X, Info } from "lucide-react";
 import DomainWarmupProgress from "./DomainWarmupProgress";
 import VolumeRecommendations from "./VolumeRecommendations";
+import WarmupScheduleCalculator from "./WarmupScheduleCalculator";
 
 // Common DKIM selectors used by various email providers
 const COMMON_DKIM_SELECTORS = [
@@ -249,6 +250,10 @@ const StepDomain = ({
 
           {domainAge && (
             <VolumeRecommendations domainAge={domainAge} />
+          )}
+
+          {domainAge && (
+            <WarmupScheduleCalculator domainAge={domainAge} />
           )}
         </div>
 
