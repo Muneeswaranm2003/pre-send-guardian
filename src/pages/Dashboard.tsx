@@ -14,6 +14,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useWarmupPlans } from "@/hooks/useWarmupPlans";
+import WarmupDashboardWidget from "@/components/warmup/WarmupDashboardWidget";
 import { FullPageSpinner } from "@/components/ui/loading-spinner";
 import { StatusIcon } from "@/components/ui/status-icon";
 import { HealthBadge } from "@/components/ui/health-badge";
@@ -42,6 +44,7 @@ const Dashboard = () => {
     refreshAllDomains,
     markAlertRead,
   } = useDashboard(user?.id);
+  const { plans, loading: warmupLoading } = useWarmupPlans(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -180,8 +183,12 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {/* Alerts Panel */}
-            <div>
+            {/* Right sidebar */}
+            <div className="space-y-6">
+              {/* Warmup Widget */}
+              <WarmupDashboardWidget plans={plans} loading={warmupLoading} />
+
+              {/* Alerts Panel */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
