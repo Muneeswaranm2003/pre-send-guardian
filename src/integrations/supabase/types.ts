@@ -257,6 +257,104 @@ export type Database = {
         }
         Relationships: []
       }
+      warmup_daily_logs: {
+        Row: {
+          actual_volume: number | null
+          bounce_rate: number | null
+          complaint_rate: number | null
+          created_at: string
+          day_number: number
+          id: string
+          log_date: string
+          notes: string | null
+          plan_id: string
+          recommended_volume: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          actual_volume?: number | null
+          bounce_rate?: number | null
+          complaint_rate?: number | null
+          created_at?: string
+          day_number: number
+          id?: string
+          log_date?: string
+          notes?: string | null
+          plan_id: string
+          recommended_volume: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          actual_volume?: number | null
+          bounce_rate?: number | null
+          complaint_rate?: number | null
+          created_at?: string
+          day_number?: number
+          id?: string
+          log_date?: string
+          notes?: string | null
+          plan_id?: string
+          recommended_volume?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warmup_daily_logs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "warmup_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warmup_plans: {
+        Row: {
+          alert_email: string | null
+          alerts_enabled: boolean
+          created_at: string
+          current_day: number
+          domain: string
+          domain_age: string
+          id: string
+          started_at: string
+          status: string
+          target_daily_volume: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_email?: string | null
+          alerts_enabled?: boolean
+          created_at?: string
+          current_day?: number
+          domain: string
+          domain_age: string
+          id?: string
+          started_at?: string
+          status?: string
+          target_daily_volume?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_email?: string | null
+          alerts_enabled?: boolean
+          created_at?: string
+          current_day?: number
+          domain?: string
+          domain_age?: string
+          id?: string
+          started_at?: string
+          status?: string
+          target_daily_volume?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
