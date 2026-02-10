@@ -7,6 +7,7 @@ import { useWarmupPlans } from "@/hooks/useWarmupPlans";
 import { FullPageSpinner } from "@/components/ui/loading-spinner";
 import WarmupPlanCreator from "@/components/warmup/WarmupPlanCreator";
 import WarmupPlanCard from "@/components/warmup/WarmupPlanCard";
+import WarmupStatsCards from "@/components/warmup/WarmupStatsCards";
 import { Flame } from "lucide-react";
 
 const Warmup = () => {
@@ -30,7 +31,7 @@ const Warmup = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container py-8 md:py-12">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
               <Flame className="w-8 h-8 text-primary" />
@@ -41,14 +42,23 @@ const Warmup = () => {
             </p>
           </div>
 
+          {/* Stats overview */}
+          {plans.length > 0 && (
+            <div className="mb-8">
+              <WarmupStatsCards plans={plans} />
+            </div>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Creator */}
-            <div className="lg:col-span-1">
-              <WarmupPlanCreator onCreatePlan={createPlan} />
+            <div className="lg:col-span-1 lg:order-2">
+              <div className="lg:sticky lg:top-6">
+                <WarmupPlanCreator onCreatePlan={createPlan} />
+              </div>
             </div>
 
             {/* Plans */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 lg:order-1 space-y-6">
               {activePlans.length > 0 && (
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold text-foreground">Active Plans</h2>

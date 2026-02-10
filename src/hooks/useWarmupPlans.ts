@@ -120,7 +120,8 @@ export function useWarmupPlans(userId: string | undefined) {
   const logDay = useCallback(
     async (planId: string, dayNumber: number, recommendedVolume: number, actualVolume: number, bounceRate?: number, complaintRate?: number, notes?: string) => {
       if (!userId) return;
-      const status = bounceRate && bounceRate > 2 ? "issue" : "completed";
+      const hasIssue = (bounceRate != null && bounceRate > 2) || (complaintRate != null && complaintRate > 0.1);
+      const status = hasIssue ? "issue" : "completed";
       const { error } = await supabase.from("warmup_daily_logs").insert({
         plan_id: planId,
         user_id: userId,
@@ -137,11 +138,27 @@ export function useWarmupPlans(userId: string | undefined) {
       } else {
         toast.success("Day logged!");
         fetchLogs(planId);
-        // Advance current_day
-        await supabase
-          .from("warmup_plans")
-          .update({ current_day: dayNumber + 1 })
-          .eq("id", planId);
+
+        // Auto-pause if 3 consecutive issues
+        const { data: recentLogs } = await supabase
+          .from("warmup_daily_logs")
+          .select("status")
+          .eq("plan_id", planId)
+          .order("day_number", { ascending: false })
+          .limit(3);
+
+        const consecutiveIssues = recentLogs?.every((l) => l.status === "issue") && (recentLogs?.length ?? 0) >= 3;
+
+        if (consecutiveIssues) {
+          await supabase.from("warmup_plans").update({ status: "paused" }).eq("id", planId);
+          toast.warning("Plan auto-paused due to 3 consecutive high bounce/complaint days. Review and reduce volume before resuming.");
+        } else {
+          // Advance current_day
+          await supabase
+            .from("warmup_plans")
+            .update({ current_day: dayNumber + 1 })
+            .eq("id", planId);
+        }
         fetchPlans();
       }
     },

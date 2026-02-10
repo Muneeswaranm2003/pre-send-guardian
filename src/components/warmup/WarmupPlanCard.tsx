@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Flame, Pause, Play, Trash2, CheckCircle, AlertTriangle, TrendingUp, Calendar,
+  Flame, Pause, Play, Trash2, CheckCircle, AlertTriangle, Calendar, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { generateSchedule, getRecommendedVolume } from "@/hooks/useWarmupPlans";
+import WarmupProgressChart from "./WarmupProgressChart";
+import WarmupBounceChart from "./WarmupBounceChart";
+import WarmupMilestones from "./WarmupMilestones";
+import WarmupLogForm from "./WarmupLogForm";
 import type { Tables } from "@/integrations/supabase/types";
 
 type WarmupPlan = Tables<"warmup_plans">;
@@ -32,9 +34,6 @@ const STATUS_CONFIG = {
 export default function WarmupPlanCard({
   plan, logs, onFetchLogs, onUpdateStatus, onLogDay, onDelete,
 }: WarmupPlanCardProps) {
-  const [actualVolume, setActualVolume] = useState("");
-  const [bounceRate, setBounceRate] = useState("");
-  const [complaintRate, setComplaintRate] = useState("");
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -46,21 +45,15 @@ export default function WarmupPlanCard({
   const completedDays = logs.filter((l) => l.status === "completed" || l.status === "issue").length;
   const progressPercent = Math.round((completedDays / totalDays) * 100);
   const currentDayVolume = getRecommendedVolume(plan.domain_age, plan.current_day, plan.target_daily_volume);
-
   const todayLogged = logs.some((l) => l.day_number === plan.current_day);
   const hasIssues = logs.some((l) => l.status === "issue");
+  const recentIssues = logs.filter((l) => l.status === "issue").slice(-3);
 
   const statusConfig = STATUS_CONFIG[plan.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.active;
   const StatusIcon = statusConfig.icon;
 
-  const handleLogDay = () => {
-    const vol = parseInt(actualVolume) || currentDayVolume;
-    const br = bounceRate ? parseFloat(bounceRate) : undefined;
-    const cr = complaintRate ? parseFloat(complaintRate) : undefined;
-    onLogDay(plan.id, plan.current_day, currentDayVolume, vol, br, cr);
-    setActualVolume("");
-    setBounceRate("");
-    setComplaintRate("");
+  const handleLogDay = (actualVolume: number, bounceRate?: number, complaintRate?: number, notes?: string) => {
+    onLogDay(plan.id, plan.current_day, currentDayVolume, actualVolume, bounceRate, complaintRate, notes);
   };
 
   return (
@@ -72,9 +65,11 @@ export default function WarmupPlanCard({
               <Flame className="w-4 h-4 text-primary" />
               {plan.domain}
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Started {new Date(plan.started_at).toLocaleDateString()}
-            </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Started {new Date(plan.started_at).toLocaleDateString()}</span>
+              <span>•</span>
+              <span>Target: {plan.target_daily_volume.toLocaleString()}/day</span>
+            </div>
           </div>
           <Badge variant={statusConfig.variant} className="gap-1">
             <StatusIcon className="w-3 h-3" />
@@ -83,7 +78,7 @@ export default function WarmupPlanCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Progress */}
+        {/* Progress bar */}
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span className="text-muted-foreground">Day {plan.current_day} of {totalDays}</span>
@@ -92,56 +87,26 @@ export default function WarmupPlanCard({
           <Progress value={progressPercent} className="h-2" />
         </div>
 
-        {/* Today's target */}
-        {plan.status === "active" && !todayLogged && (
-          <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Today's Target</span>
-              </div>
-              <span className="text-lg font-bold text-primary">
-                {currentDayVolume.toLocaleString()} emails
-              </span>
+        {/* Smart alerts */}
+        {recentIssues.length > 0 && plan.status === "active" && (
+          <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 text-sm space-y-1">
+            <div className="flex items-center gap-2 font-medium text-destructive">
+              <AlertTriangle className="w-4 h-4" />
+              {recentIssues.length} recent issue{recentIssues.length > 1 ? "s" : ""} detected
             </div>
-
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Actual Volume</Label>
-                <Input
-                  type="number"
-                  placeholder={currentDayVolume.toString()}
-                  value={actualVolume}
-                  onChange={(e) => setActualVolume(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Bounce Rate %</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="0.5"
-                  value={bounceRate}
-                  onChange={(e) => setBounceRate(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Complaint Rate %</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.05"
-                  value={complaintRate}
-                  onChange={(e) => setComplaintRate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <Button size="sm" onClick={handleLogDay} className="w-full">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Log Day {plan.current_day}
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              High bounce rates slow your reputation. Consider reducing volume or pausing.
+            </p>
           </div>
+        )}
+
+        {/* Log form for today */}
+        {plan.status === "active" && !todayLogged && (
+          <WarmupLogForm
+            currentDay={plan.current_day}
+            recommendedVolume={currentDayVolume}
+            onLog={handleLogDay}
+          />
         )}
 
         {todayLogged && plan.status === "active" && (
@@ -151,43 +116,66 @@ export default function WarmupPlanCard({
           </div>
         )}
 
-        {/* Log history toggle */}
+        {/* Expand/collapse analytics */}
         <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)} className="w-full">
-          <Calendar className="w-4 h-4 mr-2" />
-          {expanded ? "Hide" : "Show"} Log History ({completedDays} days)
+          {expanded ? <ChevronUp className="w-4 h-4 mr-2" /> : <ChevronDown className="w-4 h-4 mr-2" />}
+          {expanded ? "Hide" : "Show"} Analytics & History
         </Button>
 
-        {expanded && logs.length > 0 && (
-          <div className="max-h-48 overflow-y-auto space-y-1">
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                className={`flex items-center justify-between text-xs p-2 rounded ${
-                  log.status === "issue"
-                    ? "bg-destructive/10 border border-destructive/20"
-                    : "bg-accent/30"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {log.status === "issue" ? (
-                    <AlertTriangle className="w-3 h-3 text-destructive" />
-                  ) : (
-                    <CheckCircle className="w-3 h-3 text-[hsl(var(--success))]" />
-                  )}
-                  <span className="text-muted-foreground">Day {log.day_number}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-foreground font-medium">
-                    {log.actual_volume?.toLocaleString() ?? "—"} / {log.recommended_volume.toLocaleString()}
-                  </span>
-                  {log.bounce_rate != null && (
-                    <span className={log.bounce_rate > 2 ? "text-destructive" : "text-muted-foreground"}>
-                      BR: {log.bounce_rate}%
-                    </span>
-                  )}
+        {expanded && (
+          <div className="space-y-4">
+            <WarmupProgressChart
+              domainAge={plan.domain_age}
+              targetVolume={plan.target_daily_volume}
+              logs={logs}
+              currentDay={plan.current_day}
+            />
+            <WarmupBounceChart logs={logs} />
+            <WarmupMilestones plan={plan} logs={logs} />
+
+            {/* Log history */}
+            {logs.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Daily Log ({completedDays} days)
+                </p>
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {logs.map((log) => (
+                    <div
+                      key={log.id}
+                      className={`flex items-center justify-between text-xs p-2 rounded ${
+                        log.status === "issue"
+                          ? "bg-destructive/10 border border-destructive/20"
+                          : "bg-accent/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {log.status === "issue" ? (
+                          <AlertTriangle className="w-3 h-3 text-destructive" />
+                        ) : (
+                          <CheckCircle className="w-3 h-3 text-[hsl(var(--success))]" />
+                        )}
+                        <span className="text-muted-foreground">Day {log.day_number}</span>
+                        {log.notes && (
+                          <span className="text-muted-foreground italic truncate max-w-[120px]">— {log.notes}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-foreground font-medium">
+                          {log.actual_volume?.toLocaleString() ?? "—"} / {log.recommended_volume.toLocaleString()}
+                        </span>
+                        {log.bounce_rate != null && (
+                          <span className={Number(log.bounce_rate) > 2 ? "text-destructive" : "text-muted-foreground"}>
+                            BR: {String(log.bounce_rate)}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         )}
 
