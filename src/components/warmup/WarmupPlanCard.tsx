@@ -136,9 +136,12 @@ export default function WarmupPlanCard({
             {/* Log history */}
             {logs.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                <p className="text-sm font-medium text-foreground mb-1 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  Daily Log ({completedDays} days)
+                  Daily log ({completedDays} days)
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Days with a bounce rate above 2% or complaints above 0.1% are flagged as issues.
                 </p>
                 <div className="max-h-48 overflow-y-auto space-y-1">
                   {logs.map((log) => (
@@ -167,7 +170,7 @@ export default function WarmupPlanCard({
                         </span>
                         {log.bounce_rate != null && (
                           <span className={Number(log.bounce_rate) > 2 ? "text-destructive" : "text-muted-foreground"}>
-                            BR: {String(log.bounce_rate)}%
+                            Bounce rate {String(log.bounce_rate)}%
                           </span>
                         )}
                       </div>

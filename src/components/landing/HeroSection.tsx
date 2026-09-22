@@ -26,18 +26,18 @@ function HeroSection() {
               <span className="text-primary">Before</span> You Send
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl">
-              Predict email deliverability with AI-powered analysis.
-              Protect your domain reputation and maximize inbox placement.
+              Check your domain, sending setup and email content in minutes — and fix the problems
+              that would have sent you to the spam folder.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/simulator">
-                  Try Free Simulator
+                  Check my spam risk
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
-              <Button variant="heroOutline" size="xl">
-                Watch Demo
+              <Button variant="heroOutline" size="xl" asChild>
+                <a href="#how-it-works">See how it works</a>
               </Button>
             </div>
             <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">

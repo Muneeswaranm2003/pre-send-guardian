@@ -6,7 +6,7 @@ import { HOW_IT_WORKS } from "@/constants";
 
 function HowItWorksSection() {
   return (
-    <section className="py-20 md:py-28 bg-card border-y border-border">
+    <section id="how-it-works" className="scroll-mt-20 py-20 md:py-28 bg-card border-y border-border">
       <div className="container">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
