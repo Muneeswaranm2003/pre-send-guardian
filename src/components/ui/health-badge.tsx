@@ -9,7 +9,7 @@ interface HealthBadgeProps {
 export function HealthBadge({ health, className }: HealthBadgeProps) {
   if (health >= 80) {
     return (
-      <Badge className={cn("bg-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/80", className)}>
+      <Badge className={cn("bg-success hover:bg-success/80", className)}>
         Healthy
       </Badge>
     );
@@ -17,7 +17,7 @@ export function HealthBadge({ health, className }: HealthBadgeProps) {
   
   if (health >= 50) {
     return (
-      <Badge className={cn("bg-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]/80", className)}>
+      <Badge className={cn("bg-warning hover:bg-warning/80", className)}>
         Warning
       </Badge>
     );

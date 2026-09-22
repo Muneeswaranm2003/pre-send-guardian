@@ -6,8 +6,8 @@ import { AlertTriangle, ArrowRight, CheckCircle } from "lucide-react";
 
 const DEMO_ISSUES = [
   { text: "Domain age only 14 days", color: "text-destructive" },
-  { text: "Volume 4x above average", color: "text-[hsl(var(--warning))]" },
-  { text: "38% inactive recipients", color: "text-[hsl(var(--info))]" },
+  { text: "Volume 4x above average", color: "text-warning" },
+  { text: "38% inactive recipients", color: "text-info" },
 ] as const;
 
 function HeroSection() {
@@ -26,27 +26,27 @@ function HeroSection() {
               <span className="text-primary">Before</span> You Send
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl">
-              Predict email deliverability with AI-powered analysis.
-              Protect your domain reputation and maximize inbox placement.
+              Check your domain, sending setup and email content in minutes — and fix the problems
+              that would have sent you to the spam folder.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/simulator">
-                  Try Free Simulator
+                  Check my spam risk
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
-              <Button variant="heroOutline" size="xl">
-                Watch Demo
+              <Button variant="heroOutline" size="xl" asChild>
+                <a href="#how-it-works">See how it works</a>
               </Button>
             </div>
             <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                <CheckCircle className="w-4 h-4 text-success" />
                 No credit card required
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                <CheckCircle className="w-4 h-4 text-success" />
                 Free forever plan
               </div>
             </div>

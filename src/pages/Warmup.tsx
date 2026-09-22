@@ -8,6 +8,8 @@ import { FullPageSpinner } from "@/components/ui/loading-spinner";
 import WarmupPlanCreator from "@/components/warmup/WarmupPlanCreator";
 import WarmupPlanCard from "@/components/warmup/WarmupPlanCard";
 import WarmupStatsCards from "@/components/warmup/WarmupStatsCards";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Flame } from "lucide-react";
 
 const Warmup = () => {
@@ -32,15 +34,11 @@ const Warmup = () => {
       <Header />
       <main className="container py-8 md:py-12">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <Flame className="w-8 h-8 text-primary" />
-              Domain Warmup Automation
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Create personalized warmup schedules, track daily progress, and get alerts when milestones are reached.
-            </p>
-          </div>
+          <PageHeader
+            title="Domain Warmup"
+            description="Build a safe sending schedule, log your daily volume, and spot problems before they hurt your reputation."
+            icon={Flame}
+          />
 
           {/* Stats overview */}
           {plans.length > 0 && (
@@ -96,13 +94,11 @@ const Warmup = () => {
               )}
 
               {plans.length === 0 && (
-                <div className="text-center py-16 border border-dashed border-border rounded-xl">
-                  <Flame className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold text-foreground mb-2">No warmup plans yet</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Create your first plan to start warming up your domain safely.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Flame}
+                  title="No warmup plans yet"
+                  description="Create your first plan using the form beside this panel to start warming up your domain safely."
+                />
               )}
             </div>
           </div>

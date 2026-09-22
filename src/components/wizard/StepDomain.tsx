@@ -168,7 +168,7 @@ const StepDomain = ({
                     <SelectItem value="quarter">
                       <span className="flex items-center gap-2">
                         1 - 3 months
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-warning/15 text-warning">Medium Risk</span>
                         <Info className="w-3 h-3 text-muted-foreground" />
                       </span>
                     </SelectItem>
@@ -183,7 +183,7 @@ const StepDomain = ({
                     <SelectItem value="half">
                       <span className="flex items-center gap-2">
                         3 - 6 months
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))]">Medium Risk</span>
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-warning/15 text-warning">Medium Risk</span>
                         <Info className="w-3 h-3 text-muted-foreground" />
                       </span>
                     </SelectItem>
@@ -198,7 +198,7 @@ const StepDomain = ({
                     <SelectItem value="year">
                       <span className="flex items-center gap-2">
                         6 months - 1 year
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--info))]/15 text-[hsl(var(--info))]">Low Risk</span>
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-info/15 text-info">Low Risk</span>
                         <Info className="w-3 h-3 text-muted-foreground" />
                       </span>
                     </SelectItem>
@@ -213,7 +213,7 @@ const StepDomain = ({
                     <SelectItem value="established">
                       <span className="flex items-center gap-2">
                         1 - 2 years
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-success/15 text-success">Trusted</span>
                         <Info className="w-3 h-3 text-muted-foreground" />
                       </span>
                     </SelectItem>
@@ -228,7 +228,7 @@ const StepDomain = ({
                     <SelectItem value="mature">
                       <span className="flex items-center gap-2">
                         2+ years
-                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">Trusted</span>
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-success/15 text-success">Trusted</span>
                         <Info className="w-3 h-3 text-muted-foreground" />
                       </span>
                     </SelectItem>

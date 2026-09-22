@@ -521,8 +521,8 @@ const StepIpSmtp = ({
         </div>
 
         {volume[0] > 5000 && (
-          <div className="p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/30 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5" />
+          <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-warning mt-0.5" />
             <p className="text-sm text-muted-foreground">
               High volume detected. Consider splitting your campaign or warming up gradually.
             </p>

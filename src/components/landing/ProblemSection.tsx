@@ -42,8 +42,8 @@ function ProblemSection() {
             </ul>
           </div>
           
-          <div className="p-6 rounded-xl border border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5">
-            <h3 className="text-lg font-semibold text-[hsl(var(--success))] mb-4 flex items-center gap-2">
+          <div className="p-6 rounded-xl border border-success/30 bg-success/5">
+            <h3 className="text-lg font-semibold text-success mb-4 flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
               SpamGuard Approach
             </h3>

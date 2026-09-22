@@ -9,10 +9,10 @@ interface StatusIconProps {
 }
 
 const statusConfig: Record<StatusType, { icon: LucideIcon; colorClass: string }> = {
-  valid: { icon: CheckCircle, colorClass: "text-[hsl(var(--success))]" },
-  clean: { icon: CheckCircle, colorClass: "text-[hsl(var(--success))]" },
-  invalid: { icon: AlertTriangle, colorClass: "text-[hsl(var(--warning))]" },
-  warning: { icon: AlertTriangle, colorClass: "text-[hsl(var(--warning))]" },
+  valid: { icon: CheckCircle, colorClass: "text-success" },
+  clean: { icon: CheckCircle, colorClass: "text-success" },
+  invalid: { icon: AlertTriangle, colorClass: "text-warning" },
+  warning: { icon: AlertTriangle, colorClass: "text-warning" },
   missing: { icon: XCircle, colorClass: "text-destructive" },
   critical: { icon: XCircle, colorClass: "text-destructive" },
   unknown: { icon: Clock, colorClass: "text-muted-foreground" },

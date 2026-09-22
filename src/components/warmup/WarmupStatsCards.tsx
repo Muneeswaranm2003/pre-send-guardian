@@ -20,8 +20,8 @@ export default function WarmupStatsCards({ plans }: Props) {
 
   const stats = [
     { icon: Flame, value: active, label: "Active", colorClass: "bg-primary/10", iconClass: "text-primary" },
-    { icon: Pause, value: paused, label: "Paused", colorClass: "bg-[hsl(var(--warning))]/10", iconClass: "text-[hsl(var(--warning))]" },
-    { icon: CheckCircle, value: completed, label: "Completed", colorClass: "bg-[hsl(var(--success))]/10", iconClass: "text-[hsl(var(--success))]" },
+    { icon: Pause, value: paused, label: "Paused", colorClass: "bg-warning/10", iconClass: "text-warning" },
+    { icon: CheckCircle, value: completed, label: "Completed", colorClass: "bg-success/10", iconClass: "text-success" },
     { icon: BarChart3, value: `${avgProgress}%`, label: "Avg Progress", colorClass: "bg-accent", iconClass: "text-accent-foreground" },
   ];
 

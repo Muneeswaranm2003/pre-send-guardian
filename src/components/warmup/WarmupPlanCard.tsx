@@ -110,8 +110,8 @@ export default function WarmupPlanCard({
         )}
 
         {todayLogged && plan.status === "active" && (
-          <div className="p-3 rounded-lg bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/30 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+          <div className="p-3 rounded-lg bg-success/10 border border-success/30 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-success" />
             <span className="text-sm text-foreground">Day {plan.current_day} logged! Come back tomorrow.</span>
           </div>
         )}
@@ -136,9 +136,12 @@ export default function WarmupPlanCard({
             {/* Log history */}
             {logs.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                <p className="text-sm font-medium text-foreground mb-1 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  Daily Log ({completedDays} days)
+                  Daily log ({completedDays} days)
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Days with a bounce rate above 2% or complaints above 0.1% are flagged as issues.
                 </p>
                 <div className="max-h-48 overflow-y-auto space-y-1">
                   {logs.map((log) => (
@@ -154,7 +157,7 @@ export default function WarmupPlanCard({
                         {log.status === "issue" ? (
                           <AlertTriangle className="w-3 h-3 text-destructive" />
                         ) : (
-                          <CheckCircle className="w-3 h-3 text-[hsl(var(--success))]" />
+                          <CheckCircle className="w-3 h-3 text-success" />
                         )}
                         <span className="text-muted-foreground">Day {log.day_number}</span>
                         {log.notes && (
@@ -167,7 +170,7 @@ export default function WarmupPlanCard({
                         </span>
                         {log.bounce_rate != null && (
                           <span className={Number(log.bounce_rate) > 2 ? "text-destructive" : "text-muted-foreground"}>
-                            BR: {String(log.bounce_rate)}%
+                            Bounce rate {String(log.bounce_rate)}%
                           </span>
                         )}
                       </div>
