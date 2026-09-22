@@ -19,6 +19,8 @@ import WarmupDashboardWidget from "@/components/warmup/WarmupDashboardWidget";
 import { FullPageSpinner } from "@/components/ui/loading-spinner";
 import { StatusIcon } from "@/components/ui/status-icon";
 import { HealthBadge } from "@/components/ui/health-badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Plus,
   RefreshCw,
@@ -69,23 +71,23 @@ const Dashboard = () => {
 
       <main className="container py-8 md:py-12">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Monitoring Dashboard</h1>
-              <p className="text-muted-foreground">Live domain health and deliverability tracking</p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={refreshAllDomains} disabled={refreshing}>
-                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-                Refresh All
-              </Button>
-              <Button onClick={() => navigate("/simulator")}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Domain
-              </Button>
-            </div>
-          </div>
+          <PageHeader
+            title="Monitoring Dashboard"
+            description="Live domain health and deliverability tracking."
+            icon={Activity}
+            actions={
+              <>
+                <Button variant="outline" onClick={refreshAllDomains} disabled={refreshing}>
+                  <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                  {refreshing ? "Refreshing…" : "Refresh All"}
+                </Button>
+                <Button onClick={() => navigate("/simulator")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Domain
+                </Button>
+              </>
+            }
+          />
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -119,17 +121,17 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {domains.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Globe className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="font-semibold text-foreground mb-2">No domains monitored</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Add your first domain to start monitoring
-                      </p>
-                      <Button onClick={() => navigate("/simulator")}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Domain
-                      </Button>
-                    </div>
+                    <EmptyState
+                      icon={Globe}
+                      title="No domains monitored yet"
+                      description="Add your first domain and we'll keep checking its authentication and blacklist status for you."
+                      action={
+                        <Button onClick={() => navigate("/simulator")}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Domain
+                        </Button>
+                      }
+                    />
                   ) : (
                     <div className="overflow-x-auto">
                       <Table>
@@ -199,10 +201,12 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {alerts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckCircle className="w-10 h-10 text-success mx-auto mb-3" />
-                      <p className="text-muted-foreground">No new alerts</p>
-                    </div>
+                    <EmptyState
+                      icon={CheckCircle}
+                      title="All clear"
+                      description="No new alerts. We'll let you know if something changes."
+                      compact
+                    />
                   ) : (
                     <div className="space-y-3">
                       {alerts.map((alert) => (
