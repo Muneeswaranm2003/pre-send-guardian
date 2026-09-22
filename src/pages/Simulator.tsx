@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WizardSteps from "@/components/wizard/WizardSteps";
+import { PageHeader } from "@/components/ui/page-header";
 import StepDomain from "@/components/wizard/StepDomain";
 import StepIpSmtp from "@/components/wizard/StepIpSmtp";
 import StepEmailContent from "@/components/wizard/StepEmailContent";
@@ -95,15 +96,11 @@ const Simulator = () => {
 
       <main className="container py-8 md:py-12">
         <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Email Spam Risk Simulator
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Follow the steps to analyze your email campaign before sending
-            </p>
-          </div>
+          <PageHeader
+            title="Spam Risk Simulator"
+            description="Four short steps: tell us about your domain, your sending setup and your email — then we check it before you send."
+            align="center"
+          />
 
           {/* Wizard Steps */}
           <WizardSteps steps={steps} currentStep={currentStep} />
