@@ -100,14 +100,14 @@ const DnsVerification = ({ domain, onDomainChange, onVerificationComplete }: Dns
 
   const getStatusIcon = (found: boolean, valid: boolean) => {
     if (!found) return <XCircle className="w-5 h-5 text-destructive" />;
-    if (!valid) return <AlertTriangle className="w-5 h-5 text-[hsl(var(--warning))]" />;
-    return <CheckCircle className="w-5 h-5 text-[hsl(var(--success))]" />;
+    if (!valid) return <AlertTriangle className="w-5 h-5 text-warning" />;
+    return <CheckCircle className="w-5 h-5 text-success" />;
   };
 
   const getStatusColor = (found: boolean, valid: boolean) => {
     if (!found) return "border-destructive/30 bg-destructive/5";
-    if (!valid) return "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5";
-    return "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5";
+    if (!valid) return "border-warning/30 bg-warning/5";
+    return "border-success/30 bg-success/5";
   };
 
   return (
@@ -170,17 +170,17 @@ const DnsVerification = ({ domain, onDomainChange, onVerificationComplete }: Dns
             {/* Overall Score */}
             <div className={`p-4 rounded-lg border ${
               result.overallStatus === "pass"
-                ? "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
+                ? "border-success/30 bg-success/5"
                 : result.overallStatus === "warning"
-                ? "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5"
+                ? "border-warning/30 bg-warning/5"
                 : "border-destructive/30 bg-destructive/5"
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {result.overallStatus === "pass" ? (
-                    <CheckCircle className="w-6 h-6 text-[hsl(var(--success))]" />
+                    <CheckCircle className="w-6 h-6 text-success" />
                   ) : result.overallStatus === "warning" ? (
-                    <AlertTriangle className="w-6 h-6 text-[hsl(var(--warning))]" />
+                    <AlertTriangle className="w-6 h-6 text-warning" />
                   ) : (
                     <XCircle className="w-6 h-6 text-destructive" />
                   )}
@@ -190,9 +190,9 @@ const DnsVerification = ({ domain, onDomainChange, onVerificationComplete }: Dns
                 </div>
                 <span className={`text-2xl font-bold ${
                   result.overallStatus === "pass"
-                    ? "text-[hsl(var(--success))]"
+                    ? "text-success"
                     : result.overallStatus === "warning"
-                    ? "text-[hsl(var(--warning))]"
+                    ? "text-warning"
                     : "text-destructive"
                 }`}>
                   {result.overallScore}%
@@ -209,9 +209,9 @@ const DnsVerification = ({ domain, onDomainChange, onVerificationComplete }: Dns
                     <h4 className="font-semibold text-foreground">SPF Record</h4>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       result.spf.valid
-                        ? "bg-[hsl(var(--success))]/20 text-[hsl(var(--success))]"
+                        ? "bg-success/20 text-success"
                         : result.spf.found
-                        ? "bg-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]"
+                        ? "bg-warning/20 text-warning"
                         : "bg-destructive/20 text-destructive"
                     }`}>
                       {result.spf.valid ? "Valid" : result.spf.found ? "Issues Found" : "Not Found"}
@@ -256,9 +256,9 @@ const DnsVerification = ({ domain, onDomainChange, onVerificationComplete }: Dns
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       result.dkim.valid
-                        ? "bg-[hsl(var(--success))]/20 text-[hsl(var(--success))]"
+                        ? "bg-success/20 text-success"
                         : result.dkim.found
-                        ? "bg-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]"
+                        ? "bg-warning/20 text-warning"
                         : "bg-destructive/20 text-destructive"
                     }`}>
                       {result.dkim.valid ? "Valid" : result.dkim.found ? "Issues Found" : "Not Found"}
@@ -305,9 +305,9 @@ const DnsVerification = ({ domain, onDomainChange, onVerificationComplete }: Dns
                     )}
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       result.dmarc.valid
-                        ? "bg-[hsl(var(--success))]/20 text-[hsl(var(--success))]"
+                        ? "bg-success/20 text-success"
                         : result.dmarc.found
-                        ? "bg-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]"
+                        ? "bg-warning/20 text-warning"
                         : "bg-destructive/20 text-destructive"
                     }`}>
                       {result.dmarc.valid ? "Valid" : result.dmarc.found ? "Issues Found" : "Not Found"}

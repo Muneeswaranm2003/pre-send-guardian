@@ -24,8 +24,8 @@ interface WarningAlertProps {
 
 const WarningAlert = memo(function WarningAlert({ title, description }: WarningAlertProps) {
   return (
-    <div className="p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/30 flex items-start gap-2">
-      <AlertCircle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5 shrink-0" />
+    <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-start gap-2">
+      <AlertCircle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
       <div className="text-sm">
         <p className="font-medium text-foreground">{title}</p>
         <p className="text-muted-foreground">{description}</p>

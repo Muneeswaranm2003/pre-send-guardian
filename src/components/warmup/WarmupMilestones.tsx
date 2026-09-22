@@ -26,7 +26,7 @@ export default function WarmupMilestones({ plan, logs }: Props) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-[hsl(var(--warning))]" />
+          <Trophy className="w-4 h-4 text-warning" />
           Milestones
         </CardTitle>
       </CardHeader>
@@ -40,17 +40,17 @@ export default function WarmupMilestones({ plan, logs }: Props) {
                 key={m.day}
                 className={`flex items-center gap-3 p-2 rounded-lg text-sm transition-colors ${
                   reached
-                    ? "bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20"
+                    ? "bg-success/10 border border-success/20"
                     : "bg-muted/10 border border-border/50 opacity-60"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${reached ? "text-[hsl(var(--success))]" : "text-muted-foreground"}`} />
+                <Icon className={`w-4 h-4 ${reached ? "text-success" : "text-muted-foreground"}`} />
                 <div className="flex-1">
                   <span className="font-medium text-foreground">{m.label}</span>
                   <span className="text-xs text-muted-foreground ml-2">{m.description}</span>
                 </div>
                 {reached ? (
-                  <Badge variant="outline" className="text-xs border-[hsl(var(--success))]/30 text-[hsl(var(--success))]">
+                  <Badge variant="outline" className="text-xs border-success/30 text-success">
                     ✓
                   </Badge>
                 ) : (

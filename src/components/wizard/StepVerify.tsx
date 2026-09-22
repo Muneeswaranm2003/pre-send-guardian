@@ -379,8 +379,8 @@ const StepVerify = ({
                     </div>
                     <div className="text-xs text-muted-foreground">Spam Risk</div>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-[hsl(var(--success))]/10">
-                    <div className="text-2xl font-bold text-[hsl(var(--success))]">
+                  <div className="text-center p-3 rounded-lg bg-success/10">
+                    <div className="text-2xl font-bold text-success">
                       {result.inboxProbability}%
                     </div>
                     <div className="text-xs text-muted-foreground">Inbox Chance</div>
@@ -415,16 +415,16 @@ const StepVerify = ({
                           key={sel.selector}
                           className={`p-2 rounded-lg border flex items-center gap-2 ${
                             sel.valid
-                              ? "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
+                              ? "border-success/30 bg-success/5"
                               : sel.found
-                              ? "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5"
+                              ? "border-warning/30 bg-warning/5"
                               : "border-muted bg-muted/30"
                           }`}
                         >
                           {sel.valid ? (
-                            <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                            <CheckCircle className="w-4 h-4 text-success" />
                           ) : sel.found ? (
-                            <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />
+                            <AlertTriangle className="w-4 h-4 text-warning" />
                           ) : (
                             <XCircle className="w-4 h-4 text-muted-foreground" />
                           )}
@@ -434,7 +434,7 @@ const StepVerify = ({
                               <span className="text-xs text-muted-foreground ml-1">(not found)</span>
                             )}
                             {sel.found && !sel.valid && sel.issues.length > 0 && (
-                              <p className="text-xs text-[hsl(var(--warning))] truncate">
+                              <p className="text-xs text-warning truncate">
                                 {sel.issues[0]}
                               </p>
                             )}
@@ -449,9 +449,9 @@ const StepVerify = ({
                   <span className="text-sm text-muted-foreground">Overall Score:</span>
                   <span className={`font-bold ${
                     dnsResult.overallStatus === "pass" 
-                      ? "text-[hsl(var(--success))]" 
+                      ? "text-success" 
                       : dnsResult.overallStatus === "warning"
-                      ? "text-[hsl(var(--warning))]"
+                      ? "text-warning"
                       : "text-destructive"
                   }`}>
                     {dnsResult.overallScore}%
@@ -477,10 +477,10 @@ const StepVerify = ({
                 {/* Score Display */}
                 <div className="flex items-center gap-4">
                   <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold border-4 ${
-                    domainReputation.grade === "A" ? "border-[hsl(var(--success))] text-[hsl(var(--success))] bg-[hsl(var(--success))]/10" :
-                    domainReputation.grade === "B" ? "border-[hsl(var(--success))]/70 text-[hsl(var(--success))] bg-[hsl(var(--success))]/5" :
-                    domainReputation.grade === "C" ? "border-[hsl(var(--warning))] text-[hsl(var(--warning))] bg-[hsl(var(--warning))]/10" :
-                    domainReputation.grade === "D" ? "border-[hsl(var(--warning))]/70 text-[hsl(var(--warning))] bg-[hsl(var(--warning))]/5" :
+                    domainReputation.grade === "A" ? "border-success text-success bg-success/10" :
+                    domainReputation.grade === "B" ? "border-success/70 text-success bg-success/5" :
+                    domainReputation.grade === "C" ? "border-warning text-warning bg-warning/10" :
+                    domainReputation.grade === "D" ? "border-warning/70 text-warning bg-warning/5" :
                     "border-destructive text-destructive bg-destructive/10"
                   }`}>
                     {domainReputation.grade}
@@ -506,13 +506,13 @@ const StepVerify = ({
                         key={i}
                         className={`p-3 rounded-lg border ${
                           factor.status === "clean"
-                            ? "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
+                            ? "border-success/30 bg-success/5"
                             : "border-destructive/30 bg-destructive/5"
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           {factor.status === "clean" ? (
-                            <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+                            <CheckCircle className="w-4 h-4 text-success" />
                           ) : (
                             <XCircle className="w-4 h-4 text-destructive" />
                           )}
@@ -578,14 +578,14 @@ const StepVerify = ({
                       className={`p-3 rounded-lg border ${
                         bl.isListed
                           ? "border-destructive/30 bg-destructive/5"
-                          : "border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5"
+                          : "border-success/30 bg-success/5"
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         {bl.isListed ? (
                           <XCircle className="w-4 h-4 text-destructive flex-shrink-0" />
                         ) : (
-                          <CheckCircle className="w-4 h-4 text-[hsl(var(--success))] flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
                         )}
                         <span className="text-sm font-medium text-foreground">{bl.provider}</span>
                       </div>
@@ -598,7 +598,7 @@ const StepVerify = ({
                                 ? "bg-destructive" 
                                 : bl.codeInfo.severity === "high"
                                 ? "bg-destructive/80"
-                                : "bg-[hsl(var(--warning))]"
+                                : "bg-warning"
                             }`}
                           >
                             {bl.codeInfo.type.toUpperCase()}
@@ -634,8 +634,8 @@ const StepVerify = ({
                         value > 50
                           ? "bg-destructive"
                           : value > 25
-                          ? "bg-[hsl(var(--warning))]"
-                          : "bg-[hsl(var(--success))]"
+                          ? "bg-warning"
+                          : "bg-success"
                       }`}
                       style={{ width: `${value}%` }}
                     />
@@ -715,11 +715,11 @@ const StepVerify = ({
 
           {/* Success - Go to Dashboard */}
           {savedToMonitoring && (
-            <Card className="border-2 border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/5">
+            <Card className="border-2 border-success/30 bg-success/5">
               <CardContent className="pt-6">
                 <div className="text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-full bg-[hsl(var(--success))]/20 flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-[hsl(var(--success))]" />
+                  <div className="w-16 h-16 mx-auto rounded-full bg-success/20 flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-success" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-foreground">Domain Added to Monitoring</h3>

@@ -16,15 +16,15 @@ const IssueItem = ({ severity, message, recommendation }: IssueItemProps) => {
     },
     medium: {
       icon: AlertTriangle,
-      bgColor: "bg-[hsl(var(--warning))]/10",
-      borderColor: "border-[hsl(var(--warning))]/30",
-      iconColor: "text-[hsl(var(--warning))]",
+      bgColor: "bg-warning/10",
+      borderColor: "border-warning/30",
+      iconColor: "text-warning",
     },
     low: {
       icon: Info,
-      bgColor: "bg-[hsl(var(--info))]/10",
-      borderColor: "border-[hsl(var(--info))]/30",
-      iconColor: "text-[hsl(var(--info))]",
+      bgColor: "bg-info/10",
+      borderColor: "border-info/30",
+      iconColor: "text-info",
     },
   };
 

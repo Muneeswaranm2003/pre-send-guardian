@@ -107,11 +107,11 @@ import {
        case "destructive":
          return "bg-destructive/10 border-destructive/30";
        case "warning":
-         return "bg-[hsl(var(--warning))]/10 border-[hsl(var(--warning))]/30";
+         return "bg-warning/10 border-warning/30";
        case "info":
-         return "bg-[hsl(var(--info))]/10 border-[hsl(var(--info))]/30";
+         return "bg-info/10 border-info/30";
        case "success":
-         return "bg-[hsl(var(--success))]/10 border-[hsl(var(--success))]/30";
+         return "bg-success/10 border-success/30";
        default:
          return "bg-accent/10 border-border";
      }
@@ -122,11 +122,11 @@ import {
        case "destructive":
          return "text-destructive";
        case "warning":
-         return "text-[hsl(var(--warning))]";
+         return "text-warning";
        case "info":
-         return "text-[hsl(var(--info))]";
+         return "text-info";
        case "success":
-         return "text-[hsl(var(--success))]";
+         return "text-success";
        default:
          return "text-muted-foreground";
      }

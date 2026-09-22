@@ -23,14 +23,14 @@
  
    const getColorClass = (percent: number) => {
      if (percent < 30) return "text-destructive";
-     if (percent < 60) return "text-[hsl(var(--warning))]";
-     return "text-[hsl(var(--success))]";
+     if (percent < 60) return "text-warning";
+     return "text-success";
    };
  
    const getProgressColorClass = (percent: number) => {
      if (percent < 30) return "[&>div]:bg-destructive";
-     if (percent < 60) return "[&>div]:bg-[hsl(var(--warning))]";
-     return "[&>div]:bg-[hsl(var(--success))]";
+     if (percent < 60) return "[&>div]:bg-warning";
+     return "[&>div]:bg-success";
    };
  
    return (

@@ -110,8 +110,8 @@ export default function WarmupPlanCard({
         )}
 
         {todayLogged && plan.status === "active" && (
-          <div className="p-3 rounded-lg bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/30 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-[hsl(var(--success))]" />
+          <div className="p-3 rounded-lg bg-success/10 border border-success/30 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-success" />
             <span className="text-sm text-foreground">Day {plan.current_day} logged! Come back tomorrow.</span>
           </div>
         )}
@@ -154,7 +154,7 @@ export default function WarmupPlanCard({
                         {log.status === "issue" ? (
                           <AlertTriangle className="w-3 h-3 text-destructive" />
                         ) : (
-                          <CheckCircle className="w-3 h-3 text-[hsl(var(--success))]" />
+                          <CheckCircle className="w-3 h-3 text-success" />
                         )}
                         <span className="text-muted-foreground">Day {log.day_number}</span>
                         {log.notes && (

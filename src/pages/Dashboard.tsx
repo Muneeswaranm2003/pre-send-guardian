@@ -58,8 +58,8 @@ const Dashboard = () => {
 
   const statsCards = [
     { icon: Globe, value: domains.length, label: "Total Domains", colorClass: "bg-primary/10", iconClass: "text-primary" },
-    { icon: CheckCircle, value: healthyDomains, label: "Healthy", colorClass: "bg-[hsl(var(--success))]/10", iconClass: "text-[hsl(var(--success))]" },
-    { icon: AlertTriangle, value: warningDomains, label: "Warnings", colorClass: "bg-[hsl(var(--warning))]/10", iconClass: "text-[hsl(var(--warning))]" },
+    { icon: CheckCircle, value: healthyDomains, label: "Healthy", colorClass: "bg-success/10", iconClass: "text-success" },
+    { icon: AlertTriangle, value: warningDomains, label: "Warnings", colorClass: "bg-warning/10", iconClass: "text-warning" },
     { icon: XCircle, value: criticalDomains, label: "Critical", colorClass: "bg-destructive/10", iconClass: "text-destructive" },
   ];
 
@@ -200,7 +200,7 @@ const Dashboard = () => {
                 <CardContent>
                   {alerts.length === 0 ? (
                     <div className="text-center py-8">
-                      <CheckCircle className="w-10 h-10 text-[hsl(var(--success))] mx-auto mb-3" />
+                      <CheckCircle className="w-10 h-10 text-success mx-auto mb-3" />
                       <p className="text-muted-foreground">No new alerts</p>
                     </div>
                   ) : (
@@ -239,7 +239,7 @@ interface AlertItemProps {
 function AlertItem({ alert, onDismiss }: AlertItemProps) {
   const severityStyles = {
     critical: "border-destructive/30 bg-destructive/5",
-    warning: "border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/5",
+    warning: "border-warning/30 bg-warning/5",
     info: "border-border bg-accent/50",
   };
 
@@ -252,7 +252,7 @@ function AlertItem({ alert, onDismiss }: AlertItemProps) {
           {alert.severity === "critical" ? (
             <XCircle className="w-4 h-4 text-destructive mt-0.5" />
           ) : alert.severity === "warning" ? (
-            <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))] mt-0.5" />
+            <AlertTriangle className="w-4 h-4 text-warning mt-0.5" />
           ) : (
             <Bell className="w-4 h-4 text-primary mt-0.5" />
           )}

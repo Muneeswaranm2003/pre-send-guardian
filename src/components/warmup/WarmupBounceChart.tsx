@@ -25,7 +25,7 @@ export default function WarmupBounceChart({ logs }: Props) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />
+            <AlertTriangle className="w-4 h-4 text-warning" />
             Bounce & Complaint Rates
           </CardTitle>
         </CardHeader>
@@ -42,7 +42,7 @@ export default function WarmupBounceChart({ logs }: Props) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />
+          <AlertTriangle className="w-4 h-4 text-warning" />
           Bounce & Complaint Rates
         </CardTitle>
       </CardHeader>

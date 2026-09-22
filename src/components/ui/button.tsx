@@ -17,7 +17,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         hero: "bg-[image:var(--gradient-primary)] text-primary-foreground shadow-lg hover:shadow-xl hover:-translate-y-1 border-0",
         heroOutline: "border-2 border-primary bg-transparent text-primary hover:bg-primary/10",
-        success: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:opacity-90",
+        success: "bg-success text-[hsl(var(--success-foreground))] hover:opacity-90",
       },
       size: {
         default: "h-10 px-4 py-2",
