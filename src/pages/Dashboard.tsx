@@ -110,7 +110,7 @@ const Dashboard = () => {
 
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Domains Table */}
-            <div className="lg:col-span-2">
+            <div className="min-w-0 lg:col-span-2">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -186,7 +186,7 @@ const Dashboard = () => {
             </div>
 
             {/* Right sidebar */}
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6">
               {/* Warmup Widget */}
               <WarmupDashboardWidget plans={plans} loading={warmupLoading} />
 
