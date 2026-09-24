@@ -9,6 +9,7 @@ import Simulator from "./pages/Simulator";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Warmup from "./pages/Warmup";
+import Advisor from "./pages/Advisor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/warmup" element={<Warmup />} />
+            <Route path="/advisor" element={<Advisor />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
