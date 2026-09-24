@@ -11,6 +11,7 @@ import WarmupProgressChart from "./WarmupProgressChart";
 import WarmupBounceChart from "./WarmupBounceChart";
 import WarmupMilestones from "./WarmupMilestones";
 import WarmupLogForm from "./WarmupLogForm";
+import WarmupAiReview from "./WarmupAiReview";
 import type { Tables } from "@/integrations/supabase/types";
 
 type WarmupPlan = Tables<"warmup_plans">;
@@ -115,6 +116,8 @@ export default function WarmupPlanCard({
             <span className="text-sm text-foreground">Day {plan.current_day} logged! Come back tomorrow.</span>
           </div>
         )}
+
+        <WarmupAiReview plan={plan} logs={logs} />
 
         {/* Expand/collapse analytics */}
         <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)} className="w-full">
