@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createOpenAI } from "npm:@ai-sdk/openai";
-import { streamText, Output, NoObjectGeneratedError } from "npm:ai";
+import { streamText } from "npm:ai";
 import { z } from "npm:zod@3.23.8";
 
 const corsHeaders = {
