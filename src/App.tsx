@@ -9,6 +9,7 @@ import Simulator from "./pages/Simulator";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Warmup from "./pages/Warmup";
+import Advisor from "./pages/Advisor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
