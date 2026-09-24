@@ -22,6 +22,7 @@ function Header() {
   const navLinks: NavLinkItem[] = [
     { name: "Home", path: "/" },
     { name: "Simulator", path: "/simulator" },
+    { name: "AI Review", path: "/advisor" },
     ...(user ? [
       { name: "Dashboard", path: "/dashboard" },
       { name: "Warmup", path: "/warmup" },
