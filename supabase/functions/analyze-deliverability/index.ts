@@ -104,9 +104,21 @@ Rules for your answer:
     const result = streamText({
       model: lovable.responses("openai/gpt-6-astra"),
       system:
-        "You are a senior email deliverability consultant. You explain spam-filter risk in plain, specific language and never invent data that was not provided.",
-      prompt,
-      output: Output.object({ schema: ResultSchema }),
+        "You are a senior email deliverability consultant. You explain spam-filter risk in plain, specific language and never invent data that was not provided. You reply with JSON only — no prose, no markdown fences.",
+      prompt: `${prompt}
+
+Reply with ONLY a JSON object in exactly this shape:
+{
+  "overallRisk": "low" | "medium" | "high" | "critical",
+  "riskScore": number,
+  "summary": string,
+  "inboxPlacementOutlook": string,
+  "risks": [{ "title": string, "area": "content" | "authentication" | "reputation" | "list" | "sending", "severity": "low" | "medium" | "high", "why": string, "fix": string }],
+  "spamTriggerPhrases": [string],
+  "subjectLineFeedback": string,
+  "quickWins": [string],
+  "rewrittenSubject": string
+}`,
       providerOptions: {
         openai: {
           forceReasoning: true,
@@ -118,19 +130,33 @@ Rules for your answer:
       },
     });
 
-    const output = await result.output;
+    const text = await result.text;
+    const jsonText = text.replace(/```json|```/g, "").trim();
 
-    return new Response(JSON.stringify(output), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    if (NoObjectGeneratedError.isInstance(error)) {
-      console.error("analyze-deliverability: model output did not match schema", error.text);
+    let advice: unknown;
+    try {
+      advice = JSON.parse(jsonText.slice(jsonText.indexOf("{"), jsonText.lastIndexOf("}") + 1));
+    } catch {
+      console.error("analyze-deliverability: could not parse model output", text.slice(0, 500));
       return new Response(
         JSON.stringify({ error: "The analysis came back in an unexpected format. Please try again." }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    const validated = ResultSchema.safeParse(advice);
+    if (!validated.success) {
+      console.error("analyze-deliverability: unexpected shape", validated.error.message);
+      return new Response(
+        JSON.stringify({ error: "The analysis came back incomplete. Please try again." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    return new Response(JSON.stringify(validated.data), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("analyze-deliverability failed:", message);
     const status = /rate limit|429/i.test(message) ? 429 : /credit|402/i.test(message) ? 402 : 500;
