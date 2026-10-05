@@ -52,6 +52,101 @@ export type Database = {
           },
         ]
       }
+      domain_check_history: {
+        Row: {
+          auth_score: number
+          blacklist_status: string
+          checked_at: string
+          dkim_status: string | null
+          dmarc_status: string | null
+          domain: string
+          domain_id: string
+          health_score: number
+          id: string
+          listed_count: number
+          reputation_score: number | null
+          source: string
+          spf_status: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_score?: number
+          blacklist_status?: string
+          checked_at?: string
+          dkim_status?: string | null
+          dmarc_status?: string | null
+          domain: string
+          domain_id: string
+          health_score?: number
+          id?: string
+          listed_count?: number
+          reputation_score?: number | null
+          source?: string
+          spf_status?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_score?: number
+          blacklist_status?: string
+          checked_at?: string
+          dkim_status?: string | null
+          dmarc_status?: string | null
+          domain?: string
+          domain_id?: string
+          health_score?: number
+          id?: string
+          listed_count?: number
+          reputation_score?: number | null
+          source?: string
+          spf_status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_check_history_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          last_checked_at: string | null
+          last_risk_score: number | null
+          name: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          last_risk_score?: number | null
+          name: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          last_risk_score?: number | null
+          name?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       monitored_domains: {
         Row: {
           alert_email: string | null
@@ -256,6 +351,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      warmup_ai_reviews: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          plan_id: string
+          result: Json
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          plan_id: string
+          result: Json
+          subject: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          plan_id?: string
+          result?: Json
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warmup_ai_reviews_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "warmup_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       warmup_daily_logs: {
         Row: {
