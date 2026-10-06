@@ -35,9 +35,14 @@ export default function WarmupLogForm({ currentDay, recommendedVolume, onLog }: 
           <TrendingUp className="w-5 h-5 text-primary" />
           <span className="font-semibold text-foreground">Day {currentDay} — Log Your Send</span>
         </div>
-        <span className="text-lg font-bold text-primary">
-          {recommendedVolume.toLocaleString()} emails
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-primary">
+            {recommendedVolume.toLocaleString()} emails
+          </span>
+          <Button size="sm" variant="secondary" onClick={() => onLog(recommendedVolume)}>
+            Log as planned
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
