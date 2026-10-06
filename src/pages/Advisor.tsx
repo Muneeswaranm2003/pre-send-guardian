@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useTemplates } from "@/hooks/useTemplates";
+import TemplatePicker from "@/components/templates/TemplatePicker";
 import { Loader2, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -61,6 +64,21 @@ const Advisor = () => {
   const [blacklisted, setBlacklisted] = useState("Not listed anywhere");
   const [loading, setLoading] = useState(false);
   const [advice, setAdvice] = useState<DeliverabilityAdvice | null>(null);
+  const [templateId, setTemplateId] = useState<string | undefined>();
+  const { templates, recordScore, save, signedIn } = useTemplates();
+  const [params] = useSearchParams();
+
+  useEffect(() => {
+    const id = params.get("template");
+    const t = id && templates.find((x) => x.id === id);
+    if (t && templateId !== t.id) { setTemplateId(t.id); setSubject(t.subject); setBody(t.body); }
+  }, [params, templates, templateId]);
+
+  const saveAsTemplate = async () => {
+    if (!subject.trim() || !body.trim()) { toast.error("Add a subject and email text first"); return; }
+    const { error } = await save({ name: subject.slice(0, 60), subject, body });
+    if (error) toast.error(error); else toast.success("Saved to your templates");
+  };
 
   const handleAnalyze = async () => {
     if (!subject.trim() || !body.trim()) {
@@ -99,6 +117,10 @@ const Advisor = () => {
       }
 
       setAdvice(data as DeliverabilityAdvice);
+      const tpl = templateId && templates.find((x) => x.id === templateId);
+      if (tpl && tpl.subject === subject && tpl.body === body) {
+        await recordScore(tpl.id, (data as DeliverabilityAdvice).riskScore);
+      }
       toast.success("Review ready");
     } catch (err) {
       console.error(err);
@@ -120,7 +142,17 @@ const Advisor = () => {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="p-6 space-y-5 min-w-0">
-            <h2 className="text-lg font-semibold">Email content</h2>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h2 className="text-lg font-semibold">Email content</h2>
+              {signedIn && (
+                <Button type="button" variant="ghost" size="sm" onClick={saveAsTemplate}>Save as template</Button>
+              )}
+            </div>
+            <TemplatePicker
+              templates={templates}
+              value={templateId}
+              onPick={(t) => { setTemplateId(t.id); setSubject(t.subject); setBody(t.body); }}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="subject">Subject line</Label>
