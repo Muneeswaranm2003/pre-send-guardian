@@ -67,6 +67,7 @@ export interface WizardStep {
 // Dashboard types
 export interface MonitoredDomain {
   id: string;
+  user_id: string;
   domain: string;
   ip_address: string | null;
   overall_health: number;

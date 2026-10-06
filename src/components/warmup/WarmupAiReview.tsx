@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTemplates } from "@/hooks/useTemplates";
+import TemplatePicker from "@/components/templates/TemplatePicker";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +41,21 @@ export default function WarmupAiReview({ plan, logs }: Props) {
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
   const [review, setReview] = useState<WarmupReview | null>(null);
+  const [reviewedAt, setReviewedAt] = useState<string | null>(null);
+  const { templates } = useTemplates();
+
+  useEffect(() => {
+    supabase.from("warmup_ai_reviews").select("*").eq("plan_id", plan.id)
+      .order("created_at", { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setReview(data.result as unknown as WarmupReview);
+          setReviewedAt(data.created_at);
+          setSubject(data.subject);
+          setBody(data.body);
+        }
+      });
+  }, [plan.id]);
 
   const run = async () => {
     const schedule = generateSchedule(plan.domain_age, plan.target_daily_volume);
@@ -69,6 +86,10 @@ export default function WarmupAiReview({ plan, logs }: Props) {
       return;
     }
     setReview(data as WarmupReview);
+    setReviewedAt(new Date().toISOString());
+    await supabase.from("warmup_ai_reviews").insert({
+      user_id: plan.user_id, plan_id: plan.id, subject, body, result: data,
+    });
   };
 
   return (
@@ -86,6 +107,7 @@ export default function WarmupAiReview({ plan, logs }: Props) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          <TemplatePicker templates={templates} onPick={(t) => { setSubject(t.subject); setBody(t.body); }} />
           <div className="space-y-1">
             <Label htmlFor="wr-subject">Subject</Label>
             <Input id="wr-subject" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={300} />
@@ -102,6 +124,9 @@ export default function WarmupAiReview({ plan, logs }: Props) {
 
         {review && (
           <div className="space-y-4 pt-2">
+            {reviewedAt && (
+              <p className="text-xs text-muted-foreground">Last reviewed {new Date(reviewedAt).toLocaleString()}</p>
+            )}
             <p className="text-sm text-foreground">{review.summary}</p>
             {review.contentRisks.length > 0 && (
               <ul className="text-sm list-disc pl-5 text-muted-foreground space-y-1">

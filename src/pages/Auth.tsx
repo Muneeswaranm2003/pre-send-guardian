@@ -30,7 +30,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate("/dashboard");
+      navigate("/today");
     }
   }, [user, loading, navigate]);
 
@@ -59,7 +59,7 @@ const Auth = () => {
       }
     } else {
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      navigate("/today");
     }
   };
 
@@ -89,7 +89,7 @@ const Auth = () => {
       }
     } else {
       toast.success("Account created! You can now sign in.");
-      navigate("/dashboard");
+      navigate("/today");
     }
   };
 

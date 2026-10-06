@@ -10,7 +10,7 @@ import WarmupPlanCard from "@/components/warmup/WarmupPlanCard";
 import WarmupStatsCards from "@/components/warmup/WarmupStatsCards";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Flame } from "lucide-react";
+import { Flame, BellRing } from "lucide-react";
 
 const Warmup = () => {
   const navigate = useNavigate();
@@ -28,6 +28,9 @@ const Warmup = () => {
 
   const activePlans = plans.filter((p) => p.status === "active");
   const otherPlans = plans.filter((p) => p.status !== "active");
+  const notLoggedToday = activePlans.filter(
+    (p) => logs[p.id] && !logs[p.id].some((l) => l.day_number === p.current_day),
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,6 +42,17 @@ const Warmup = () => {
             description="Build a safe sending schedule, log your daily volume, and spot problems before they hurt your reputation."
             icon={Flame}
           />
+
+          {notLoggedToday.length > 0 && (
+            <div className="mb-6 p-4 rounded-lg border border-warning/40 bg-warning/10 flex items-center gap-3">
+              <BellRing className="w-5 h-5 text-warning shrink-0" />
+              <p className="text-sm text-foreground">
+                Today's sends aren't logged yet for{" "}
+                <span className="font-medium">{notLoggedToday.map((p) => p.domain).join(", ")}</span>.
+                Use "Log as planned" if you sent the recommended amount.
+              </p>
+            </div>
+          )}
 
           {/* Stats overview */}
           {plans.length > 0 && (

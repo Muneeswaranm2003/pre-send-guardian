@@ -73,6 +73,22 @@ export function useDashboard(userId: string | undefined) {
               }
             }
 
+            const spf = dnsData?.spf?.valid ? "valid" : dnsData?.spf?.found ? "invalid" : "missing";
+            const dkim = dnsData?.dkim?.valid ? "valid" : dnsData?.dkim?.found ? "invalid" : "missing";
+            const dmarc = dnsData?.dmarc?.valid ? "valid" : dnsData?.dmarc?.found ? "invalid" : "missing";
+            await supabase.from("domain_check_history").insert({
+              user_id: domain.user_id,
+              domain_id: domain.id,
+              domain: domain.domain,
+              spf_status: spf,
+              dkim_status: dkim,
+              dmarc_status: dmarc,
+              auth_score: Math.round(dnsData?.overallScore || 0),
+              blacklist_status: blacklistStatus,
+              health_score: Math.round(dnsData?.overallScore || 0),
+              source: "manual",
+            });
+
             await supabase
               .from("monitored_domains")
               .update({
