@@ -24,6 +24,8 @@ function Header() {
     { name: "Simulator", path: "/simulator" },
     { name: "AI Review", path: "/advisor" },
     ...(user ? [
+      { name: "Today", path: "/today" },
+      { name: "Templates", path: "/templates" },
       { name: "Dashboard", path: "/dashboard" },
       { name: "Warmup", path: "/warmup" },
     ] : []),
