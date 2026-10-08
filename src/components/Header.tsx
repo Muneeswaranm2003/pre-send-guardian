@@ -27,6 +27,7 @@ function Header() {
       { name: "Today", path: "/today" },
       { name: "Templates", path: "/templates" },
       { name: "Dashboard", path: "/dashboard" },
+      { name: "Health", path: "/health" },
       { name: "Warmup", path: "/warmup" },
     ] : []),
     { name: "Pricing", path: "/#pricing" },

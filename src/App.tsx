@@ -12,6 +12,7 @@ import Warmup from "./pages/Warmup";
 import Advisor from "./pages/Advisor";
 import Today from "./pages/Today";
 import Templates from "./pages/Templates";
+import DomainHealth from "./pages/DomainHealth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/advisor" element={<Advisor />} />
             <Route path="/today" element={<Today />} />
             <Route path="/templates" element={<Templates />} />
+            <Route path="/health" element={<DomainHealth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
