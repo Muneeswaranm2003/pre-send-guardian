@@ -92,7 +92,18 @@ async function checkDNSBL(query: string, provider: string): Promise<{ isListed: 
       };
     }
 
-    // For other providers, any answer means listed
+    // URIBL returns 127.0.0.1 when it refuses queries from public resolvers — not a listing.
+    // Real URIBL listings are 127.0.0.2 (black), .4 (grey), .8 (red).
+    if (provider === "URIBL" && returnCode === "127.0.0.1") {
+      console.log("URIBL returned 127.0.0.1 - query refused, NOT a listing");
+      return { isListed: false, returnCode };
+    }
+    // SURBL / Invaluement / other zones: 127.0.0.1 is also an error/refusal code, not a listing.
+    if (returnCode === "127.0.0.1" || returnCode?.startsWith("127.255.255.")) {
+      return { isListed: false, returnCode };
+    }
+
+    // Any other answer means listed
     return { isListed: true, returnCode };
   } catch (error) {
     console.error(`Error checking ${query}:`, error);
